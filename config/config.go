@@ -13,7 +13,7 @@ import (
 
 func Config(key string, isFilePath bool) string {
 
-	relPath := "." + string(os.PathSeparator)
+	relPath := ".." + string(os.PathSeparator)
 	err := godotenv.Load(filepath.Join(relPath, ".env"))
 	if err != nil {
 		fmt.Println("Error loading .env file", err)
