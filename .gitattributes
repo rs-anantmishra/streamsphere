@@ -1,1 +1,2 @@
 ui/public/** linguist-vendored
+*.sql linguist-detectable
