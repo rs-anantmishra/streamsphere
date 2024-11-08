@@ -1,0 +1,41 @@
+<div [ngSwitch]="this.totalRecords">
+    <!-- <div class="full-page" *ngIf="this.totalRecords > 0; else-if empty; else empty;"> -->
+    <div class="full-page" *ngSwitchDefault>
+        <p-scrollPanel [style]="{ width: '100%', height: 'calc(100vh - 150px)' }">
+            <div class="element">
+                <div class="box">
+                    <div *ngFor="let video of this.lstVideos">
+                        <app-simplecard [metadata]="video"></app-simplecard>
+                    </div>
+                </div>
+            </div>
+            <div style="display: flex; position: fixed; bottom: 6px; left: 0px; width: 100%;">
+                <div style="margin: auto;" [ngStyle]="{'visibility': visibility}">
+                    <p-paginator #paginator (onPageChange)="onPageChange($event)" [first]="first" [rows]="rows"
+                        [totalRecords]="totalRecords" [showCurrentPageReport]="true" [showPageLinks]="true"
+                        [pageLinkSize]="10" [showJumpToPageDropdown]="true"
+                        currentPageReportTemplate="Showing {first} to {last} of {totalRecords}"
+                        [rowsPerPageOptions]="[10, 20, 30]" />
+                </div>
+            </div>
+        </p-scrollPanel>
+    </div>
+
+    <!-- <ng-template #empty> -->
+    <div *ngSwitchCase="0">
+        <div class="fullpage-empty">
+            <div class="empty-library">
+                There are no videos added to the library!
+            </div>
+        </div>
+    </div>
+
+    <!-- <ng-template #empty> -->
+    <div *ngSwitchCase="-1" class="spinner">
+        <p-progressSpinner ariaLabel="loading" />
+    </div>
+
+    <div style="display: none;">
+        <a routerLink="/home" class="p-button font-bold">back to home</a>
+    </div>
+</div>

@@ -1,0 +1,41 @@
+<div class="simplecard details" (click)="selectedPlaylist(this.playlist)">
+    <p-card subheader="" styleClass="settings">
+        <ng-template pTemplate="header">
+            <!-- card-image -->
+            <div class="zoom-img">
+                <img [src]="playlist.thumbnail" class="center-cropped" />
+            </div>
+            <!-- duration -->
+            <div class="tag-container">
+                <p-tag icon="pi pi-list" severity="secondary" value="{{playlist.item_count}} videos" />
+            </div>
+            <!-- title and its tooltip -->
+            <span class="header header-text" [pTooltip]="hdrtooltipContent" tooltipPosition="bottom"
+                showDelay="500">{{playlist.playlist_title}}</span>
+            <ng-template #hdrtooltipContent>
+                <div class="tooltip-text">
+                    <span> {{playlist.playlist_title}} </span>
+                </div>
+            </ng-template>
+        </ng-template>
+
+        <div class="content-section">
+            <div style="display: flex;">
+                <span>{{playlist.playlist_uploader}} </span><br />
+            </div>
+        </div>
+    </p-card>
+</div>
+
+<!-- 
+    simplecard
+    details
+    settings
+    zoom-img
+    center-cropped
+    tag-container
+    header 
+    header-text
+    tooltip-text
+    content-section
+-->

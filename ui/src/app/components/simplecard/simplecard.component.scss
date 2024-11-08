@@ -1,0 +1,110 @@
+p-card {
+    cursor: pointer;
+    // display: flex;
+    // margin: 0px auto;
+    // max-width: 350px;
+}
+
+.simplecard {
+    margin: 0.5rem;
+    min-width: 350px;
+    max-width: 350px;
+    min-height: 325px;
+    max-height: 325px;
+}
+
+.header-text {
+    font-size: 16px;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    line-height: 1.4rem;
+    white-space: normal;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+}
+
+.header {
+    display: -moz-box;
+    display: -webkit-box;
+    margin: 0.5rem 1rem 0rem 1rem;
+    min-height: 45px;
+    max-height: 45px;
+}
+
+.details {
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    display: block;
+}
+
+.content-section{
+    margin: 0.5rem 0rem;
+    font-size: 14px;
+    font-weight: 600;
+    color: #777;
+}
+
+.center-cropped {
+    width: 350px;
+    height: 200px;
+    background-position: center center;
+    background-repeat: no-repeat;
+    border-radius: 6px;
+}
+
+.zoom-img {
+    overflow: hidden;
+    border-radius: 6px;
+    transition: all 0.2s ease-in-out;
+}
+
+
+.zoom-img:hover {
+    overflow: hidden;
+    border-radius: 6px;
+    box-shadow: #0099FF 0px 20px 30px -5px;
+}
+
+.zoom-img img {
+    object-fit: cover;
+    transition: all .3s ease;
+}
+
+.zoom-img img:hover {
+    transform: scale(1.1);
+}
+
+:host::ng-deep .p-card .p-card-body {
+    padding: 0rem 1rem 0.5rem 1rem;
+    gap: 0rem;
+}
+
+.tag-container {
+    justify-content: end;
+    display: flex;
+    position: relative;
+    margin-right: 1rem;
+    margin-top: -35px;
+    margin-right: 5px;
+}
+
+.tags-info {
+    margin: 2px;
+}
+
+.tooltip-text {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 12px;
+}
+
+/*
+#FF0099 - 255, 0, 153 - PinkPurple
+#FF9900 - 255, 153, 0 - OrangeYellow
+#99FF00 - 153, 255, 0 - Lime Green
+
+#9900FF - 153, 0, 255 - PurpleViolet
+#0099FF - 0, 153, 255 - BlueCyan
+#00FF99 - 0, 255, 153 - Sea Green
+*/

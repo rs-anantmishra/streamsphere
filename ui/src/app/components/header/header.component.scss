@@ -1,0 +1,70 @@
+.header-box {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 12px;
+    z-index: 3;
+    position: relative;
+}
+
+:host ::ng-deep .p-breadcrumb {
+    border: none;
+    padding-bottom: 0.75rem;
+    padding-top: 0.75rem;
+}
+
+:host ::ng-deep .p-autocomplete-input {
+    padding-bottom: 0.5rem;
+    padding-top: 0.75rem;
+}
+
+
+.streams-box {
+    display: flex;
+    // margin: 6px;
+    // padding: 0px 8px 0px 8px;
+    width: 290px;
+    max-width: 290px;
+}
+
+.streams-text {
+    font-family: "Shadows Into Light", cursive;
+    font-weight: 400;
+    font-style: normal;
+    font-size: 21px;
+    color: #FFF1DB;
+}
+
+.streamsphere {
+    max-width: 21px;
+    max-height: 21px;
+    margin: 6px;
+    clip-path: circle(90px);
+}
+
+.streams-container {
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    width: 172px;
+    border-radius: 6px;
+    background-color: black;
+}
+
+.search-box {
+    padding: 0px 8px 0px 8px;
+    width: 100%;
+    max-width: 1200px;
+}
+
+.nav-box {
+    padding: 0px 8px;
+    width: 100%;
+    max-width: 290px;
+    display: flex;
+    align-items: center;
+}
+
+.theme-mode {
+    margin: 0px 10px;
+}

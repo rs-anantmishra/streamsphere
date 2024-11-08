@@ -1,0 +1,126 @@
+<div style="display: none;">
+    <a routerLink="/home" class="p-button font-bold" size="small">Router</a>
+</div>
+<div class="video-frame">
+    <div class="player-video">
+        <video id='plyrId' controls crossorigin playsinline [poster]="selectedVideo.thumbnail" >
+            <source class="player-source" src='{{selectedVideo.media_url}}' type='video/webm'>
+            <!-- Fallback for browsers that don't support the <video> element -->
+            <a href='{{selectedVideo.media_url}}' download>Download</a>
+        </video>
+    </div>
+</div>
+
+<p-panel class="video-content">
+    <ng-template pTemplate="header">
+        <div class="header-section">
+            <div class="header-title">
+                <span class="title-text">{{selectedVideo.title}}
+                    <a class="pi pi-external-link open-external" href="{{selectedVideo.webpage_url}}"
+                        target="_blank"></a>
+                </span> <br />
+                <div style="display: flex;">
+                    <h4 class="channel-text">{{selectedVideo.channel}}</h4>
+                </div>
+            </div>
+
+            <div class="header-info">
+                <!-- <div class="micro-informations"> -->
+                <div class="tags-container">
+                    <!-- <p-tag [style]="{padding:'6px', 'margin': '0px 6px'}"> -->
+                    <p-tag [style]="{padding:'6px', 'margin-left': '4px'}" severity="info">
+                        <span style="font-size: 12px;">
+                            <i class="pi pi-user" style="margin: 0px 3px; font-size: 12px;"></i>
+                            {{selectedVideo.views_count | minifiedViewCount}}
+                        </span>
+                    </p-tag>
+                </div>
+                <div class="tags-container">
+                    <p-tag [style]="{padding:'6px', 'margin-left': '4px'}" severity="info">
+                        <span style="font-size: 12px;">
+                            <i class="pi pi-thumbs-up" style="margin: 0px 3px; font-size: 12px;"></i>
+                            {{selectedVideo.likes_count | minifiedLikeCount}}
+                        </span>
+                    </p-tag>
+                </div>
+                <!-- </div> -->
+            </div>
+        </div>
+    </ng-template>
+    <div class="content-section">
+        <div class="content-description">
+            <span class="upload-text">{{selectedVideo.upload_date | minifiedDate}}</span>
+            <p [innerHTML]="selectedVideo.description"> </p>
+        </div>
+        <div class="content-extras">
+            <p-fieldset [toggleable]="true">
+                <ng-template pTemplate="header">
+                    <span class="fieldset-header">File Details</span>
+                </ng-template>
+                <div style="display: flex;">
+                    <div class="fieldset-info-content">
+                        <!-- file resolution -->
+                        <div class="tags-container">
+                            <p-tag [style]="{padding:'6px', 'margin-left': '4px'}" severity="info">
+                                <span style="font-size: 12px;">
+                                    <i class="pi pi-desktop" style="margin: 0px 3px; font-size: 12px;"></i>
+                                    {{selectedVideo.video_format| formattedResolution}}
+                                </span>
+                            </p-tag>
+                        </div>
+                        <!-- file resolution -->
+                        <div class="tags-container">
+                            <p-tag [style]="{padding:'6px', 'margin-left': '4px'}" severity="info">
+                                <span style="font-size: 12px;">
+                                    <i class="pi pi-desktop" style="margin: 0px 3px; font-size: 12px;"></i>
+                                    {{selectedVideo.filesize | filesizeToMiB: 2}}
+                                </span>
+                            </p-tag>
+                        </div>
+                        <!-- file extension -->
+                        <div class="tags-container">
+                            <p-tag [style]="{padding:'6px', 'margin-left': '4px'}" severity="info">
+                                <span style="font-size: 12px;">
+                                    <i class="pi pi-file" style="margin: 0px 3px; font-size: 12px;"></i>
+                                    {{selectedVideo.extension}}
+                                </span>
+                            </p-tag>
+                        </div>
+                    </div>
+                    <!-- download -->
+                    <div class="align-right">
+                        <p-button icon="pi pi-download" (click)="download()" size="small" severity="secondary"
+                            label="Download" />
+                    </div>
+                </div>
+            </p-fieldset>
+            <p-fieldset [toggleable]="true">
+                <ng-template pTemplate="header">
+                    <span class="fieldset-header">Category & Tags</span>
+                </ng-template>
+                <div style="display: flex;">
+                    <div class="fieldset-info-content">
+                        <!-- video category -->
+                        <div class="tags-container">
+                            <p-tag [style]="{padding:'0.5rem', 'margin-left': '4px'}" severity="info" rounded="true">
+                                <span style="font-size: 12px;">
+                                    <i class="pi pi-at" style="margin: 0px 3px; font-size: 12px;"></i>
+                                    {{selectedVideo.categories | commaSepStringFromArray: false}}
+                                </span>
+                            </p-tag>
+                        </div>
+                        @for (tag of selectedVideo.tags; track tag) {
+                        <p-chip label="#{{tag}}" class="chips-info" />
+                        }
+
+                    </div>
+                </div>
+            </p-fieldset>
+        </div>
+    </div>
+    <ng-template pTemplate="footer">
+        <div style="display: none;">
+            <span>More from this Channel</span>
+        </div>
+    </ng-template>
+</p-panel>

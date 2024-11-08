@@ -1,0 +1,31 @@
+<div class="header-box">
+    <!-- <div style="position: fixed; top: 0px;"> -->
+    <div class="streams-box">
+        <div class="streams-container" *ngIf="!this.isHomepage" (click)="navigate('/home')">
+            <img class="streamsphere" src="./assets/smol-sphere.gif" />
+            <span class="name-box streams-text">Streamsphere</span>
+        </div>
+    </div>
+
+    <!-- <div style="position: fixed; top: 24px; left: 168px;"> -->
+    <div class="search-box" [ngStyle]="{visibility: visible}">
+        <span class="p-fluid">
+            <p-autoComplete [(ngModel)]="selectedTitle" [group]="true" [suggestions]="filteredGroups"
+                (completeMethod)="filterGroupedContent($event)" placeholder="search & play" variant="filled" (click)="navigateToVideo(selectedTitle)">
+                <ng-template let-group pTemplate="group">
+                    <div>
+                        <!-- <img src="https://primefaces.org/cdn/primeng/images/demo/flag/flag_placeholder.png"
+                            [class]="'mr-2 flag flag-' + group.value" style="width: 20px" /> -->
+                        <span>{{ group.label }}:</span>
+                    </div>
+                </ng-template>
+            </p-autoComplete>
+        </span>
+    </div>
+    <div class="nav-box">
+        <p-button [icon]="themeIcon" [outlined]="true" severity="contrast" size="small" [text]="true"
+            [label]="activeIcon" class="theme-mode" (click)="toggleTheme()" />
+        <p-toast />
+        <p-splitButton size="small" label="Navigation" (onClick)="navigate('/home')" [model]="navItems" raised />
+    </div>
+</div>

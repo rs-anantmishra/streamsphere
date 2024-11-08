@@ -1,0 +1,11 @@
+FROM node:lts-bookworm-slim AS base
+
+# update system and install required packages
+RUN <<EOF
+apt update -y
+npm install -g http-server 
+EOF
+
+EXPOSE 3500
+WORKDIR /content
+CMD ["http-server", "--port", "3500","--cors","'Access-Control-Allow-Origin:*'"]

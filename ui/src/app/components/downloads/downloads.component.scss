@@ -1,0 +1,171 @@
+.home-box {
+    display: flex;
+    justify-content: center;
+    margin: auto;
+
+    flex-direction: column;
+    align-items: center;
+
+    height: calc(100vh - 104px - 60px);
+}
+
+.url-container {
+    width: 800px;
+}
+
+.me-container {
+    font-family: "Shadows Into Light", cursive;
+    font-weight: 400;
+    font-style: normal;
+    font-size: 84px;
+
+    background-color: black;
+    color: #FFF1DB;
+    border-radius: 6px;
+    margin-bottom: 6px;
+
+    display: flex;
+    justify-content: center;
+    width: 800px
+}
+
+.streamsphere {
+    max-width: 196px;
+    max-height: 196px;
+    margin: 6px;
+    clip-path: circle(90px);
+}
+
+.name-box {
+    align-self: center;
+    margin: 6px;
+}
+
+.options-container {
+    display: flex;
+    width: 800px;
+    margin: 8px 0px 8px 0px;
+}
+
+.checkbox-first {
+    margin: 0px 8px 0px 0px;
+}
+
+.checkbox-last {
+    margin: 0px 0px 0px 8px;
+}
+
+.footer {
+    position: fixed;
+    bottom: 0px;
+    width: 100%;
+    height: 60px;
+    left: 0px;
+    display: flex;
+    align-items: center;
+    justify-content: end;
+}
+
+.panel-box {
+    margin: 8px 0px 8px 0px;
+    width: 800px;
+    visibility: visible;
+    opacity: 1;
+}
+
+.content-box {
+    display: flex;
+    flex-direction: column;
+}
+
+:host ::ng-deep .queued-box {
+    min-width: 436px;
+}
+
+.server-logs {
+    width: 800px;
+    height: 55px;
+    background-color: black;
+    border: black 2px solid;
+    border-radius: 2px;
+    display: flex;
+    justify-content: start;
+    padding: 10px;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.download-details {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.information-box {
+    display: flex;
+    width: 100%;
+}
+
+.information-details {
+    width: 100%;
+    max-width: 600px;
+    margin: 0px 8px
+}
+
+.serverlogs-size {
+    font-size: 12px;
+}
+
+.info-image-size {
+    max-width: 150px !important;
+}
+
+.queued-items {
+    margin-left: auto;
+}
+
+.queued-heading {
+    text-align: center;
+    color: #777;
+}
+
+.sidebar-cards {
+    display: flex;
+    margin: 0px auto;
+    max-width: 350px;
+}
+
+.informations {
+    display: flex;
+    margin-right: auto;
+    margin-left: 8px;
+}
+
+.storage-info {
+    display: flex;
+    margin-left: 8px;
+}
+
+.storage-data {
+    font-size: 12px;
+}
+
+.footer-help {
+    font-size: 12px;
+    font-family: monospace;
+}
+
+.help-info {
+    display: flex;
+    margin-left: 8px;
+}
+
+.shortcut-keys {
+    padding: 3px;
+    border-radius: 4px;
+    border: 1px solid #777;
+    background-color: #777;
+    display: inline;
+    color: #FFFFFF;
+}

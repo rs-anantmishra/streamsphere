@@ -1,0 +1,77 @@
+<div class="simplecard details" (click)="selectedVideo(metadata)">
+    <p-card subheader="" styleClass="settings">
+        <ng-template pTemplate="header">
+            <!-- card-image -->
+            <div class="zoom-img">
+                <img [src]="metadata.thumbnail" class="center-cropped" />
+            </div>
+            <!-- duration -->
+            <div class="tag-container">
+                <p-tag icon="pi pi-clock" severity="secondary" value="{{getFormattedDuration(metadata.duration)}}" />
+            </div>
+            <!-- title and its tooltip -->
+            <span class="header header-text" [pTooltip]="hdrtooltipContent" tooltipPosition="bottom"
+                showDelay="500">{{metadata.title}}</span>
+            <ng-template #hdrtooltipContent>
+                <div class="tooltip-text">
+                    <span> {{metadata.title}} </span>
+                </div>
+            </ng-template>
+        </ng-template>
+
+        <div class="content-section">
+            <span *ngIf="metadata.title === ''">No queued downloads.</span>
+            <div style="display: flex;">
+                <span>{{metadata.channel}} </span><br />
+                <span style="margin-left: auto;">{{metadata.upload_date | minifiedDate}}</span>
+            </div>
+        </div>
+        <ng-template pTemplate="footer">
+            <div style="display: flex;" class="content-section">
+                <div>
+                    <!-- categories -->
+                    <p-tag class="tags-info" icon="pi pi-at" severity="info" [pTooltip]="tooltipCategory"
+                        tooltipPosition="bottom" />
+                    <ng-template #tooltipCategory>
+                        <div class="tooltip-text">
+                            <span> {{metadata.categories | commaSepStringFromArray: false}} </span>
+                        </div>
+                    </ng-template>
+                    <!-- video-format -->
+                    <p-tag class="tags-info" icon="pi pi-desktop" severity="info" [pTooltip]="tooltipFormat"
+                        tooltipPosition="bottom" />
+                    <ng-template #tooltipFormat>
+                        <div class="tooltip-text">
+                            <span> {{metadata.video_format | formattedResolution}} </span>
+                        </div>
+                    </ng-template>
+                    <!-- filesize -->
+                    <p-tag class="tags-info" icon="pi pi-save" severity="info" [pTooltip]="tooltipStorage"
+                        tooltipPosition="bottom" />
+                    <ng-template #tooltipStorage>
+                        <div class="tooltip-text">
+                            <span> {{metadata.filesize | filesizeToMiB: 2}} </span>
+                        </div>
+                    </ng-template>
+                    <!-- file extension -->
+                    <p-tag class="tags-info" icon="pi pi-file" severity="info" [pTooltip]="tooltipExtension"
+                        tooltipPosition="bottom" />
+                    <ng-template #tooltipExtension>
+                        <div class="tooltip-text">
+                            <span> {{metadata.extension}} </span>
+                        </div>
+                    </ng-template>
+                    <!-- video-tags -->
+                    <p-tag class="tags-info" icon="pi pi-tags" severity="info" [pTooltip]="tooltipTags"
+                        tooltipPosition="bottom" />
+                    <ng-template #tooltipTags>
+                        <div class="tooltip-text">
+                            <span> {{metadata.tags | commaSepStringFromArray: true}} </span>
+                        </div>
+                    </ng-template>
+                </div>
+                <span style="margin-left: auto;">{{metadata.views_count | minifiedViewCount}}</span>
+            </div>
+        </ng-template>
+    </p-card>
+</div>

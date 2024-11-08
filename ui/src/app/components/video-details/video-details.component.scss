@@ -1,0 +1,164 @@
+.video-frame {
+    min-width: 98vw;
+    max-width: 98vw;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+//setting 1
+// .player-video {
+//     display: flex;
+//     margin-left: auto;
+//     margin-right: auto;
+//     width: 75%;
+// }
+
+//setting 2
+.player-video {
+    display: flex;
+    max-height: 86vh;
+    width: 100%;
+    justify-content: center;
+
+    div:first-child {
+        width: 100%;
+    }
+}
+
+// .player-source {
+// display: block;
+// max-height: 50%;
+// width: auto;
+// }
+
+.video-content {
+    display: flex;
+    padding: 8px 16px;
+    min-width: 70%;
+    width: 100%;
+    margin: 0px auto;
+    height: fit-content;
+    max-width: 1690px;
+}
+
+.p-panel {
+    width: 100%;
+}
+
+:host ::ng-deep .p-panel-header {
+    font-size: 21px;
+}
+
+.title-text {
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.channel-text {
+    margin: 6px 0px;
+    font-size: 1.125rem;
+    width: fit-content;
+    max-width: 50%;
+}
+
+.upload-text {
+    margin: 6px 0px 6px auto;
+    color: #777;
+    font-size: 16px;
+    font-weight: 700;
+    width: fit-content;
+    max-width: 50%;
+}
+
+.micro-informations {
+    display: flex;
+    white-space: nowrap;
+    justify-content: end;
+    align-items: start;
+}
+
+.info-tags {
+    margin: 0px 6px;
+}
+
+.header-section {
+    width: 100%;
+    display: flex;
+}
+
+.header-title {
+    width: fit-content;
+    max-width: 70%;
+}
+
+.header-info {
+    width: fit-content;
+    max-width: 30%;
+    margin-right: 5px;
+    margin-left: auto;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: end;
+}
+
+.tags-container {
+    margin: 2px 0px;
+    height: fit-content;
+}
+
+.content-section {
+    display: flex;
+    margin: 0px auto;
+    width: 100%;
+}
+
+.content-description {
+    width: 65%;
+    // margin: 0% 0.5%;
+}
+
+.content-extras {
+    width: 34%;
+    margin: 0% 0.5%;
+}
+
+.fieldset-header {
+    font-size: 14px;
+    padding: 0px;
+}
+
+.fieldset-info-content {
+    display: flex;
+    align-items: center;
+    justify-content: start;
+    width: fit-content;
+    flex-wrap: wrap;
+}
+
+.align-right {
+    margin-left: auto;
+    margin-right: 0px;
+}
+
+.chips-info {
+    margin: 4px;
+}
+
+.open-external {
+    visibility: hidden;
+}
+
+.open-external {
+    margin: 0px 3px;
+    font-size: 16px;
+    text-decoration: none;
+    color: #777;
+    visibility: hidden;
+}
+
+.title-text:hover {
+    .open-external {
+        visibility: visible;
+        cursor: pointer;
+    }
+}

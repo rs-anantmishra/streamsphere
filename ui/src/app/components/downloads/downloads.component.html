@@ -1,0 +1,108 @@
+<div [ngClass]="homeBoxActive">
+    <div [ngClass]="contentBoxActive">
+        <div>
+            <div class="me-container">
+                <img class="streamsphere" src="./assets/smol-sphere.gif" />
+                <span class="name-box">Streamsphere</span>
+            </div>
+            <div class="url-container">
+                <p-inputGroup>
+                    <p-inputGroupAddon>http://</p-inputGroupAddon>
+                    <input type="text" pInputText [placeholder]="urlPlaceholder"
+                        [ngModel]="this.options.Identifier | removePrefix"
+                        (ngModelChange)="this.options.Identifier=$event" [disabled]="urlInputDisabled" />
+                    <button type="button" pButton label="Get" [loading]="loading" (click)="GetMedia()"></button>
+                </p-inputGroup>
+            </div>
+            <div class="options-container">
+                <div style="display: none;">
+                    <p-checkbox [(ngModel)]="options.GetAudioOnly" label="Get Audio Only" name="options"
+                        [value]="options.GetAudioOnly" class="checkbox-first"
+                        (onChange)="flipCheckbox($event, 'GetAudioOnly')" />
+                    <p-checkbox [(ngModel)]="options.GetSubs" label="Get Subtitles (Auto Generated - English)"
+                        name="options" [value]="options.GetSubs" class="checkbox-last"
+                        (onChange)="flipCheckbox($event,'GetSubs')" />
+                </div>
+                <p-button label="Queued" [outlined]="true" class="queued-items" (onClick)="getQueuedItems(true)"
+                    size="small" />
+            </div>
+        </div>
+        <p-fieldset legend="Information" [toggleable]="false">
+            <div class="information-box">
+                <div>
+                    <img [src]="activeDLImage" class="info-image-size" />
+                </div>
+                <div class="information-details">
+                    <div class="download-details">
+                        <span style="font-size: 14px;"><b>Title:</b> {{activeDLTitle}}</span>
+                        <span style="font-size: 14px;"><b>Channel:</b> {{activeDLChannel}}</span>
+                    </div>
+                    <span style="font-size: 14px;"><b>server-logs:</b> </span>
+                    <br />
+                    <span class="serverlogs-size">{{serverLogs}}</span>
+                </div>
+            </div>
+        </p-fieldset>
+    </div>
+</div>
+<p-toast />
+
+<div>
+    <p-sidebar [(visible)]="sidebarVisible" styleClass="queued-box">
+        <p-scrollPanel class="queued-scrollable" [style]="{ width: '100%', height: 'calc(100vh - 150px)' }">
+            <h2 class="queued-heading">Queued Downloads</h2>
+            <div *ngIf="this.queuedItems !== null && this.queuedItems.length > 0; else elseBlock">
+                <app-simplecard *ngFor="let item of this.queuedItems" [metadata]="item"
+                    class="sidebar-cards"></app-simplecard>
+            </div>
+            <ng-template #elseBlock>
+                <app-simplecard class="sidebar-cards" [metadata]="nilMetadata"></app-simplecard>
+            </ng-template>
+        </p-scrollPanel>
+    </p-sidebar>
+</div>
+
+<div class="footer">
+    <div class="informations">
+        <div class="help-info">
+            <p-button (onClick)="info.toggle($event)" icon="pi pi-info-circle" label="" severity="secondary"
+                size="small" />
+            <p-overlayPanel #info>
+                <h3 style="font-size: 16px;">Shortcuts</h3>
+                <div class="footer-help">
+                    <p-divider />
+                    <span class="shortcut-keys">Shift + H</span> -> Home
+                    <p-divider />
+                    <span class="shortcut-keys">Shift + V</span> -> Videos
+                    <p-divider />
+                    <span class="shortcut-keys">Shift + P</span> -> Playlists
+                    <!-- <p-divider />
+                    <span class="shortcut-keys">Alt + Shift + C</span> -> Channels
+                    <p-divider />
+                    <span class="shortcut-keys">Alt + Shift + L</span> -> Logs -->
+                </div>
+            </p-overlayPanel>
+        </div>
+        <div class="storage-info">
+            <p-button (onClick)="storage.toggle($event); this.getStorageStatus();" icon="pi pi-server"
+                label="Storage Information" severity="secondary" size="small" />
+            <p-overlayPanel #storage>
+                <div class="storage-data">
+                    <span><i class="pi pi-database"></i> Storage Used: {{fsStorageStatus | filesizeToMiB}}</span>
+                    <p-divider />
+                    <span><i class="pi pi-file"></i> Storage Used: {{dbStorageStatus | filesizeToMiB}}</span>
+                </div>
+            </p-overlayPanel>
+        </div>
+    </div>
+    <div>
+        <a href="https://buymeacoffee.com/rsanantmisp" target="_blank">
+            <p-button icon="pi pi-microchip" label="Buy me a raspberry-pi" size="small" severity="contrast"
+                [ngStyle]="{'margin-right': '16px'}" />
+        </a>
+        <a href="http://github.com/rs-anantmishra/metubeplus" target="_blank">
+            <p-button icon="pi pi-github" label="Star it on Github" size="small" severity="success"
+                [ngStyle]="{'margin-right': '16px'}" />
+        </a>
+    </div>
+</div>
