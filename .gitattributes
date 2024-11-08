@@ -1,2 +1,2 @@
-ui/public/** linguist-vendored
+*.css linguist-vendored
 *.sql linguist-detectable
