@@ -1,2 +1,1 @@
-ui/public/themes/aura-dark-blue/theme.css linguist-detectable=false
-ui/public/themes/aura-light-blue/theme.css linguist-detectable=false
+ui/public/** linguist-vendored
