@@ -19,6 +19,9 @@ COPY . .
 RUN <<EOF
 cd ui
 npm install
+mkdir public/themes -p
+cp node_modules/resources/themes/aura-light-blue/ public/themes/aura-light-blue/
+cp node_modules/resources/themes/aura-dark-blue/ public/themes/aura-dark-blue/
 ng build --configuration production
 EOF
 
