@@ -19,9 +19,6 @@ COPY . .
 RUN <<EOF
 cd ui
 npm install
-mkdir public/themes/ -p
-cp node_modules/primeng/resources/themes/aura-light-blue/ public/themes/ -r
-cp node_modules/primeng/resources/themes/aura-dark-blue/ public/themes/ -r
 ng build --configuration production 
 EOF
 
