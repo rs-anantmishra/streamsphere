@@ -1,2 +1,5 @@
+# exclude css files from external sources
 *.css linguist-vendored
-*.sql linguist-detectable
+
+# include sql files in lang-stats
+*.sql linguist-detectable 
