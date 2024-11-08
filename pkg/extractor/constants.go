@@ -4,7 +4,7 @@ import (
 	"runtime"
 	"strings"
 
-	c "github.com/rs-anantmishra/metubeplus/config"
+	c "github.com/rs-anantmishra/streamsphere/config"
 )
 
 // --Options---------------------------------------------------------------------------------------//

@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	_ "github.com/mattn/go-sqlite3"
-	c "github.com/rs-anantmishra/metubeplus/config"
+	c "github.com/rs-anantmishra/streamsphere/config"
 )
 
 /*

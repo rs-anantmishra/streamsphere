@@ -4,7 +4,7 @@ import (
 	"strconv"
 	"sync"
 
-	cfg "github.com/rs-anantmishra/metubeplus/config"
+	cfg "github.com/rs-anantmishra/streamsphere/config"
 )
 
 var onceDownloadStatus sync.Once

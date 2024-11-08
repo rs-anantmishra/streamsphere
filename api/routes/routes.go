@@ -4,7 +4,7 @@ import (
 	"github.com/gofiber/contrib/websocket"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/logger"
-	"github.com/rs-anantmishra/metubeplus/api/handler"
+	"github.com/rs-anantmishra/streamsphere/api/handler"
 )
 
 func SetupRoutes(app *fiber.App) {

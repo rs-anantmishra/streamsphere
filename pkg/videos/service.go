@@ -1,7 +1,7 @@
 package videos
 
 import (
-	"github.com/rs-anantmishra/metubeplus/api/presenter"
+	"github.com/rs-anantmishra/streamsphere/api/presenter"
 )
 
 // Service is an interface from which our api module can access our repository of all our models

@@ -5,8 +5,8 @@ import (
 	"runtime"
 	"strings"
 
-	c "github.com/rs-anantmishra/metubeplus/config"
-	e "github.com/rs-anantmishra/metubeplus/pkg/entities"
+	c "github.com/rs-anantmishra/streamsphere/config"
+	e "github.com/rs-anantmishra/streamsphere/pkg/entities"
 )
 
 type CSwitch struct {

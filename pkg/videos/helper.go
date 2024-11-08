@@ -6,10 +6,10 @@ import (
 	"strings"
 
 	"github.com/gofiber/fiber/v2/log"
-	"github.com/rs-anantmishra/metubeplus/api/presenter"
-	"github.com/rs-anantmishra/metubeplus/config"
-	_ "github.com/rs-anantmishra/metubeplus/config"
-	"github.com/rs-anantmishra/metubeplus/pkg/entities"
+	"github.com/rs-anantmishra/streamsphere/api/presenter"
+	"github.com/rs-anantmishra/streamsphere/config"
+	_ "github.com/rs-anantmishra/streamsphere/config"
+	"github.com/rs-anantmishra/streamsphere/pkg/entities"
 )
 
 func getVideosPageInfo(videos []entities.Videos) []presenter.CardsInfoResponse {

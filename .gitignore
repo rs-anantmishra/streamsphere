@@ -15,6 +15,7 @@
 
 # Ignore `cmd` dir
 # or
+ui/public/themes/**
 utils/*
 media/*
 files/*

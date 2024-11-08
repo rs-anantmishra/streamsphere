@@ -4,8 +4,8 @@ import (
 	"database/sql"
 	"fmt"
 
-	q "github.com/rs-anantmishra/metubeplus/database/queries"
-	"github.com/rs-anantmishra/metubeplus/pkg/entities"
+	q "github.com/rs-anantmishra/streamsphere/database/queries"
+	"github.com/rs-anantmishra/streamsphere/pkg/entities"
 )
 
 type IRepository interface {

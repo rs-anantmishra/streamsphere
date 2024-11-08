@@ -4,7 +4,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/rs-anantmishra/metubeplus/config"
+	"github.com/rs-anantmishra/streamsphere/config"
 )
 
 // get media directory size from fs

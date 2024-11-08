@@ -10,9 +10,9 @@ import (
 	"strings"
 
 	"github.com/gofiber/fiber/v2/log"
-	c "github.com/rs-anantmishra/metubeplus/config"
-	e "github.com/rs-anantmishra/metubeplus/pkg/entities"
-	g "github.com/rs-anantmishra/metubeplus/pkg/global"
+	c "github.com/rs-anantmishra/streamsphere/config"
+	e "github.com/rs-anantmishra/streamsphere/pkg/entities"
+	g "github.com/rs-anantmishra/streamsphere/pkg/global"
 )
 
 type IDownload interface {

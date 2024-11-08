@@ -7,9 +7,9 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2/log"
-	p "github.com/rs-anantmishra/metubeplus/api/presenter"
-	e "github.com/rs-anantmishra/metubeplus/pkg/entities"
-	g "github.com/rs-anantmishra/metubeplus/pkg/global"
+	p "github.com/rs-anantmishra/streamsphere/api/presenter"
+	e "github.com/rs-anantmishra/streamsphere/pkg/entities"
+	g "github.com/rs-anantmishra/streamsphere/pkg/global"
 )
 
 func falsifyQueueAlive() {

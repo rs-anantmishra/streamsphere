@@ -10,13 +10,13 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/log"
 
-	"github.com/rs-anantmishra/metubeplus/api/presenter"
-	res "github.com/rs-anantmishra/metubeplus/api/presenter"
-	cfg "github.com/rs-anantmishra/metubeplus/config"
-	sql "github.com/rs-anantmishra/metubeplus/database"
-	en "github.com/rs-anantmishra/metubeplus/pkg/entities"
-	ex "github.com/rs-anantmishra/metubeplus/pkg/extractor"
-	g "github.com/rs-anantmishra/metubeplus/pkg/global"
+	"github.com/rs-anantmishra/streamsphere/api/presenter"
+	res "github.com/rs-anantmishra/streamsphere/api/presenter"
+	cfg "github.com/rs-anantmishra/streamsphere/config"
+	sql "github.com/rs-anantmishra/streamsphere/database"
+	en "github.com/rs-anantmishra/streamsphere/pkg/entities"
+	ex "github.com/rs-anantmishra/streamsphere/pkg/extractor"
+	g "github.com/rs-anantmishra/streamsphere/pkg/global"
 )
 
 func NetworkIngestMetadata(c *fiber.Ctx) error {

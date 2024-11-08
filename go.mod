@@ -1,4 +1,4 @@
-module github.com/rs-anantmishra/metubeplus
+module github.com/rs-anantmishra/streamsphere
 
 go 1.22.2
 

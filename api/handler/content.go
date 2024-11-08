@@ -5,8 +5,8 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/log"
-	sql "github.com/rs-anantmishra/metubeplus/database"
-	"github.com/rs-anantmishra/metubeplus/pkg/videos"
+	sql "github.com/rs-anantmishra/streamsphere/database"
+	"github.com/rs-anantmishra/streamsphere/pkg/videos"
 )
 
 // Get All Videos

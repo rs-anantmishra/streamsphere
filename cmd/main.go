@@ -4,10 +4,10 @@ import (
 	"log"
 
 	"github.com/gofiber/fiber/v2"
-	m "github.com/rs-anantmishra/metubeplus/api/middleware"
-	r "github.com/rs-anantmishra/metubeplus/api/routes"
-	c "github.com/rs-anantmishra/metubeplus/config"
-	"github.com/rs-anantmishra/metubeplus/database"
+	m "github.com/rs-anantmishra/streamsphere/api/middleware"
+	r "github.com/rs-anantmishra/streamsphere/api/routes"
+	c "github.com/rs-anantmishra/streamsphere/config"
+	"github.com/rs-anantmishra/streamsphere/database"
 )
 
 func main() {

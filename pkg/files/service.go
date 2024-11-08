@@ -3,7 +3,7 @@ package files
 import (
 	"fmt"
 
-	"github.com/rs-anantmishra/metubeplus/api/presenter"
+	"github.com/rs-anantmishra/streamsphere/api/presenter"
 )
 
 type IService interface {

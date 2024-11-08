@@ -3,8 +3,8 @@ package handler
 import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/log"
-	sql "github.com/rs-anantmishra/metubeplus/database"
-	"github.com/rs-anantmishra/metubeplus/pkg/files"
+	sql "github.com/rs-anantmishra/streamsphere/database"
+	"github.com/rs-anantmishra/streamsphere/pkg/files"
 )
 
 func StorageStatus(c *fiber.Ctx) error {
