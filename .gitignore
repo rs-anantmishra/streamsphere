@@ -14,9 +14,7 @@
 *.exe
 
 # Ignore `cmd` dir
-cmd/
 # or
-cmd/*
 utils/*
 media/*
 files/*
