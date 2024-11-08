@@ -7,10 +7,6 @@ apt install -y wget sqlite3
 npm install -g @angular/cli
 EOF
 
-# WORKDIR /app/
-# copy release
-# COPY ./release/streamsphere_0.1.0/ /app/
-
 # copy code to build
 WORKDIR /app-code/
 COPY . .
