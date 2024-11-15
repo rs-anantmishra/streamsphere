@@ -1,7 +1,7 @@
 # :film_strip: Streamsphere
 
 It is a media library. It supports channels, playlists and videos.
-> *Note: The tool is under active development. Please see open tickets for upcoming features and bug fixes.* 
+> *Note: The tool is under active development.* 
 
 ## :computer: Interface
 ![downloading](https://github.com/user-attachments/assets/8c9654aa-6231-4bde-b144-c79d9b233592)
