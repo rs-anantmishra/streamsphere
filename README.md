@@ -79,4 +79,4 @@ The application uses yt-dlp to fetch video metadata and thumbnail, if this is su
 |  ✔️ Supported | ✔️ Supported | ✔️ Supported | ❗ Supported (has open issues) |
 
 ## 📝 License
-Affero GPL
+GNU Affero General Public License v3.0
