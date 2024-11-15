@@ -8,6 +8,8 @@ It is a media library. At the moment you can add videos to it from yt. It suppor
 
 ## :rocket: Getting Started
 
+#### Deploy using docker compose 🐳
+
 ```
 services:
   streamsphere:
@@ -35,6 +37,12 @@ volumes:
   db-data:
   content-data:
 ```
+
+#### Environment Variables
+
+**HOST_IP** is the IP of you machine on the network you want to host it on.
+**APPLICATION_PORT** is the port you are mapping your container services to.
+**CONTENT_PORT** is the port you are mapping your content files to.
 
 ## :hammer_and_wrench: Compatibility
 | CPU Architecture  | Supported |
