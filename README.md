@@ -7,7 +7,14 @@ It is a media library. At the moment you can add videos to it from yt. It suppor
 ![downloading](https://github.com/user-attachments/assets/8c9654aa-6231-4bde-b144-c79d9b233592)
 
 
-## :hammer_and_wrench: Prerequisites
-- Docker
+## :hammer_and_wrench: Compatibility
+| CPU Architecture  | Supported? |
+| ------------- | ------------- |
+| ✔️ | ❗ ✖️  |
+
+  
+- Browsers: Chrome and Safari
+- Mobile Phone Compatibility
+
 
 ## :rocket: Getting Started
