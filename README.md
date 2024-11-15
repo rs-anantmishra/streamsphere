@@ -8,5 +8,6 @@ It is a media library. At the moment you can add videos to it from yt. It suppor
 
 
 ## :hammer_and_wrench: Prerequisites
+- Docker
 
 ## :rocket: Getting Started
