@@ -6,15 +6,17 @@ It is a media library. At the moment you can add videos to it from yt. It suppor
 ## :computer: Interface
 ![downloading](https://github.com/user-attachments/assets/8c9654aa-6231-4bde-b144-c79d9b233592)
 
+## :rocket: Getting Started
 
 ## :hammer_and_wrench: Compatibility
-| CPU Architecture  | Supported? |
+| CPU Architecture  | Supported |
 | ------------- | ------------- |
-| ✔️ | ❗ ✖️  |
+| AMD64 | ✔️ |
+| ARM64 | ❗ (support to be added soon) |
 
-  
-- Browsers: Chrome and Safari
-- Mobile Phone Compatibility
-
-
-## :rocket: Getting Started
+| Screen Size | Supported |
+| ------------- | ------------- |
+| 10" & below | ✖️ |
+| 10" = 14" | ❗ (untested) |
+| 14" - 27" | ✔️ |
+| 27" & above | ❗ (untested) |
