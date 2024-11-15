@@ -8,7 +8,18 @@ It is a media library. At the moment you can add videos to it from yt. It suppor
 
 ## :rocket: Getting Started
 
+#### Features
+- 📺 Download Channels from supported domains
+- 📼 Downlad & update playlists from supported domains
+- 📽️ Download Videos from supported domains
+- 🔍 Search and play videos by title
+- 👾 UI to navigate your media library
+- 📥 Download media content that has been added to streamsphere through browser
+- ✨ View tags, categories, size of media files and other details for the downloaded content
+- 🎴 Light & Dark theme support
+
 #### Deploy using docker compose 🐳
+You will need [Docker](https://docs.docker.com/get-docker/) installed on your system for this.
 
 ```
 services:
@@ -40,7 +51,7 @@ volumes:
 
 #### Environment Variables
 
-**HOST_IP** is the IP of you machine on the network you want to host it on.
+**HOST_IP** is the IP of the machine on the network you want to host it on.
 **APPLICATION_PORT** is the port you are mapping your container services to.
 **CONTENT_PORT** is the port you are mapping your content files to.
 
@@ -63,3 +74,5 @@ volumes:
 | Edge | ✔️ Supported |
 | Safari | ✔️ Supported |
 | Firefox | ❗ Supported (has open issues) |
+
+## Credits 🏆
