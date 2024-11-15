@@ -8,6 +8,34 @@ It is a media library. At the moment you can add videos to it from yt. It suppor
 
 ## :rocket: Getting Started
 
+```
+services:
+  streamsphere:
+    image: streamsphere/streamsphere
+    container_name: streamsphere
+    restart: unless-stopped
+    ports:
+      - 1282:3000
+    environment:
+      HOST_IP: "192.168.1.15"
+      APPLICATION_PORT: "1282"
+      CONTENT_PORT: "1288"
+    volumes:
+      - db-data:/app/database/db
+      - content-data:/app/content
+
+  content:
+    image: streamsphere/streamsphere-content
+    ports:
+      - 1288:3500
+    volumes:
+      - content-data:/content
+
+volumes:
+  db-data:
+  content-data:
+```
+
 ## :hammer_and_wrench: Compatibility
 | CPU Architecture  | Supported |
 | ------------- | ------------- |
