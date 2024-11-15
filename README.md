@@ -11,12 +11,19 @@ It is a media library. At the moment you can add videos to it from yt. It suppor
 ## :hammer_and_wrench: Compatibility
 | CPU Architecture  | Supported |
 | ------------- | ------------- |
-| AMD64 | ✔️ |
-| ARM64 | ❗ (support to be added soon) |
+| AMD64 | ✔️ Supported |
+| ARM64 | ❗ Support to be added soon |
 
 | Screen Size | Supported |
 | ------------- | ------------- |
-| 10" & below | ✖️ |
-| 10" = 14" | ❗ (untested) |
-| 14" - 27" | ✔️ |
-| 27" & above | ❗ (untested) |
+| 10" & below | ✖️ Unsupported |
+| 10" - 14" | ✔️ Supported (untested) |
+| 14" - 27" | ✔️ Supported |
+| 27" & above | ✔️ Supported (untested) |
+
+| Browsers | Supported |
+| ------------- | ------------- |
+| Chrome | ✔️ Supported |
+| Edge | ✔️ Supported |
+| Safari | ✔️ Supported |
+| Firefox | ❗ Supported (has open issues) |
