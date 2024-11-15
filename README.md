@@ -18,7 +18,7 @@ It is a media library. It supports channels, playlists and videos.
 - ✨ View tags, categories, size of media files and other details for the downloaded content
 - 🎴 Light & Dark theme support
 
-### Deploy using docker compose 🐳
+### :whale: Deploy using docker compose 
 You will need [Docker](https://docs.docker.com/get-docker/) installed on your system for this.
 
 ```
@@ -58,7 +58,7 @@ volumes:
 ### Supported Domains
 -  youtube.com
 
-## Performance & Limitations
+## 〰️ Performance & Limitations
 The application uses yt-dlp to fetch video metadata and thumbnail, if this is successful, it attempts to download the video and shows download metrics on the UI. Since the application first fetches the video metadata, the Get UI operation may feel slow as it takes a while to fetch the metadata and download the video thumbnail, even more so when its a playlist or a channel. The aplpication does have the same limitations basically as yt-dlp as of the latest version. e.g. downloading a mix will end up in a never ending loop which keeps fetching data from yt-dlp.
 
 ## :hammer_and_wrench: Support & Compatibility
@@ -77,3 +77,6 @@ The application uses yt-dlp to fetch video metadata and thumbnail, if this is su
 | Chrome | Edge | Safari | Firefox |
 | ------------- | ------------- | ------------- | ------------- |
 |  ✔️ Supported | ✔️ Supported | ✔️ Supported | ❗ Supported (has open issues) |
+
+## 📝 License
+Affero GPL
