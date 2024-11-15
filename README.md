@@ -70,10 +70,10 @@ The application uses yt-dlp to fetch video metadata and thumbnail, if this is su
 
 #### Screen Size
 | 10" & below | 10" - 14" | 14" - 27" | 27" & above |
-| ------------- | ------------- |
+| ------------- | ------------- | ------------- | ------------- |
 | ✖️ Unsupported | ✔️ Supported (untested) | ✔️ Supported | ✔️ Supported (untested) |
 
 #### Browsers
 | Chrome | Edge | Safari | Firefox |
-| ------------- | ------------- |
+| ------------- | ------------- | ------------- | ------------- |
 |  ✔️ Supported | ✔️ Supported | ✔️ Supported | ❗ Supported (has open issues) |
