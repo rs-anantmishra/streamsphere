@@ -8,7 +8,7 @@ It is a media library. At the moment you can add videos to it from yt. It suppor
 
 ## :rocket: Getting Started
 
-#### Features
+### Features
 - 📺 Download Channels from supported domains
 - 📼 Downlad & update playlists from supported domains
 - 📽️ Download Videos from supported domains
@@ -18,7 +18,7 @@ It is a media library. At the moment you can add videos to it from yt. It suppor
 - ✨ View tags, categories, size of media files and other details for the downloaded content
 - 🎴 Light & Dark theme support
 
-#### Deploy using docker compose 🐳
+### Deploy using docker compose 🐳
 You will need [Docker](https://docs.docker.com/get-docker/) installed on your system for this.
 
 ```
@@ -49,11 +49,11 @@ volumes:
   content-data:
 ```
 
-#### Environment Variables
+### Environment Variables
 
-**HOST_IP** is the IP of the machine on the network you want to host it on.
-**APPLICATION_PORT** is the port you are mapping your container services to.
-**CONTENT_PORT** is the port you are mapping your content files to.
+- **HOST_IP** is the IP of the machine on the network you want to host it on.
+- **APPLICATION_PORT** is the port you are mapping your container services to.
+- **CONTENT_PORT** is the port you are mapping your content files to.
 
 ## :hammer_and_wrench: Compatibility
 | CPU Architecture  | Supported |
