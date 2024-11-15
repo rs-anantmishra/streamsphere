@@ -55,6 +55,12 @@ volumes:
 - **APPLICATION_PORT** is the port you are mapping your container services to.
 - **CONTENT_PORT** is the port you are mapping your content files to.
 
+### Supported Domains
+-  youtube.com
+
+## Performance & Limitations
+The application uses yt-dlp to fetch video metadata and thumbnail, if this is successful, it attempts to download the video and shows download metrics on the UI. Since the application first fetches the video metadata, the Get UI operation may feel slow as it takes a while to fetch the metadata and download the video thumbnail, even more so when its a playlist or a channel. The aplpication does have the same limitations basically as yt-dlp as of the latest version. e.g. downloading a mix will end up in a never ending loop which keeps fetching data from yt-dlp.
+
 ## :hammer_and_wrench: Compatibility
 | CPU Architecture  | Supported |
 | ------------- | ------------- |
@@ -74,5 +80,3 @@ volumes:
 | Edge | ✔️ Supported |
 | Safari | ✔️ Supported |
 | Firefox | ❗ Supported (has open issues) |
-
-## Credits 🏆
