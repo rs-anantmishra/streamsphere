@@ -37,14 +37,12 @@ services:
     volumes:
       - db-data:/app/database/db
       - content-data:/app/content
-
   content:
     image: streamsphere/streamsphere-content
     ports:
       - 1288:3500
     volumes:
       - content-data:/content
-
 volumes:
   db-data:
   content-data:
