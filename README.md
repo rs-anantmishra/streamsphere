@@ -1,7 +1,7 @@
 # :film_strip: Streamsphere
 
-It is a media library. It supports channels, playlists and videos.
-Goals of this software is to provide complete functionality of a media library, while being as light weight as possible.
+It is a media library. It supports channels, playlists and videos. <br />
+The primary goal of this application is to provide complete functionality of a media library, while being as light weight as possible.
 > *Note: The tool is under active development.*
 
 ## :computer: Interface
