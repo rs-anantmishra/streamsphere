@@ -8,6 +8,7 @@ echo $baseUrl
 export contentUrl=${APP_PROTOCOL}${HOST_IP}:${CONTENT_PORT}
 echo $contentUrl
 
+export FILE_HOSTING=$contentUrl
 
 # Replace placeholders in main-*.js with actual environment variable values
 if [ -z "$apiUrl" ]; then

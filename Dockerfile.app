@@ -64,7 +64,7 @@ EOF
 FROM debian:bookworm-slim AS final
 RUN <<EOF
 apt update -y && apt upgrade -y
-apt install -y gettext-base
+apt install -y gettext-base ffmpeg
 EOF
 
 COPY --from=appbase /app/ /app/
