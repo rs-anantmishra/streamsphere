@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, HostListener } from '@angular/core';
 import { RouterLink, RouterOutlet } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { SplitButtonModule } from 'primeng/splitbutton';
@@ -19,5 +19,10 @@ import { ScrollPanelModule } from 'primeng/scrollpanel';
 export class AppComponent {
 
   constructor(private messageService: MessageService) {
+  }
+
+  @HostListener("window:onbeforeunload",["$event"])
+  clearLocalStorage(event: any){
+      localStorage.clear();
   }
 }
