@@ -16,6 +16,8 @@ services:
   content:
     image: streamsphere/streamsphere-content:latest
     # image: streamsphere/streamsphere-content:latest-arm
+    container_name: streamsphere
+    restart: unless-stopped
     ports:
       - 1288:3500
     volumes:

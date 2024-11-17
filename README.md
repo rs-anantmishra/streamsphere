@@ -40,9 +40,9 @@ services:
       - content-data:/app/content
   content:
     image: streamsphere/streamsphere-content:latest
+    # image: streamsphere/streamsphere-content:latest-arm
     container_name: streamsphere-content
     restart: unless-stopped
-    # image: streamsphere/streamsphere-content:latest-arm
     ports:
       - 1288:3500
     volumes:
