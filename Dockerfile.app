@@ -1,4 +1,4 @@
-FROM node:lts-bookworm-slim AS uibase
+FROM node:20-bookworm-slim AS uibase
 
 # update system and install required packages
 RUN <<EOF
