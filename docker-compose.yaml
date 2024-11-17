@@ -13,7 +13,6 @@ services:
     volumes:
       - db-data:/app/database/db
       - content-data:/app/content
-
   content:
     image: streamsphere/streamsphere-content:latest
     # image: streamsphere/streamsphere-content:latest-arm
@@ -21,7 +20,6 @@ services:
       - 1288:3500
     volumes:
       - content-data:/content
-
 volumes:
   db-data:
   content-data:
