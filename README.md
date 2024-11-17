@@ -49,7 +49,7 @@ volumes:
   db-data:
   content-data:
 ```
-> *Note: If you are using an ARM64 machine (like a raspberry-pi), use the commented image name with **latest-arm** tag (the default uncommented image with **latest** tag is for AMD64 machines).*
+> *Note: If you are using an ARM64 machine (like a raspberry-pi), use the commented image name with **latest-arm** tag (the default uncommented image with **latest** tag is for AMD64 machines only).*
 
 ### Environment Variables
 
