@@ -65,7 +65,7 @@ The application uses yt-dlp to fetch video metadata and thumbnail, if this is su
 #### CPU Architecture
 | AMD64 | ARM64 |
 | ------------- | ------------- |
-| ✔️ Supported | ❗ Support to be added soon |
+| ✔️ Supported | | ✔️ Supported  |
 
 #### Screen Size
 | 10" & below | 10" - 14" | 14" - 27" | 27" & above |
