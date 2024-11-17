@@ -53,7 +53,7 @@ volumes:
 
 ### Environment Variables
 
-- **HOST_IP** is the IP of the machine on the network you want to host it on.
+- **HOST_IP** is the IP (or hostname) of the machine on the network you want to host it on.
 - **APPLICATION_PORT** is the port you are mapping your container services to.
 - **CONTENT_PORT** is the port you are mapping your content files to.
 
