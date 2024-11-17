@@ -25,7 +25,8 @@ You will need [Docker](https://docs.docker.com/get-docker/) installed on your sy
 ```
 services:
   streamsphere:
-    image: streamsphere/streamsphere
+    image: streamsphere/streamsphere:latest
+    # image: streamsphere/streamsphere:latest-arm
     container_name: streamsphere
     restart: unless-stopped
     ports:
@@ -38,7 +39,8 @@ services:
       - db-data:/app/database/db
       - content-data:/app/content
   content:
-    image: streamsphere/streamsphere-content
+    image: streamsphere/streamsphere-content:latest
+    # image: streamsphere/streamsphere-content:latest-arm
     ports:
       - 1288:3500
     volumes:
@@ -47,6 +49,7 @@ volumes:
   db-data:
   content-data:
 ```
+> *Note: If you are using an ARM64 machine (like a raspberry-pi), use the commented image name with **latest-arm** tag (the default uncommented image with **latest** tag is for AMD64 machines).*
 
 ### Environment Variables
 
