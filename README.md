@@ -82,5 +82,8 @@ The application uses yt-dlp to fetch video metadata and thumbnail, if this is su
 | ------------- | ------------- | ------------- | ------------- |
 |  ✔️ Supported | ✔️ Supported | ✔️ Supported | ❗ Supported (has open issues) |
 
+## 🌟 Upcoming Features
+Please refer this list of upcoming features. ![Upcoming](https://github.com/users/rs-anantmishra/projects/5)
+
 ## 📝 License
 GNU Affero General Public License v3.0
