@@ -52,7 +52,7 @@
             <div class="content-section">
                 <div class="content-description">
                     <span class="upload-text">{{selectedVideo.upload_date | minifiedDate}}</span>
-                    <p [innerHTML]="selectedVideo.description" [style]="{'margin-top':'4px'}"> </p>
+                    <p innerHTML="{{selectedVideo.description | linkify}}" [style]="{'margin-top':'4px'}"> </p>
                 </div>
                 <div class="content-extras">
                     <p-fieldset [toggleable]="true">

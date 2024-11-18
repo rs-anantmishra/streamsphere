@@ -20,13 +20,14 @@ import { PlaylistsService } from '../../services/playlists.service';
 import { MinifiedDatePipe } from "../../utilities/pipes/formatted-date.pipe";
 import { FilesizeConversionPipe } from "../../utilities/pipes/filesize-conversion.pipe";
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { LinkifyPipe } from '../../utilities/pipes/linkify.pipe';
 
 @Component({
     selector: 'app-playlist-details',
     standalone: true,
     imports: [CommonModule, RouterModule, ButtonModule, PanelModule, ScrollPanelModule, TagModule,
         ChipModule, MinifiedViewCount, MinifiedLikeCount, CommaSepStringFromArray, FormattedResolutionPipe,
-        MinifiedDatePipe, FieldsetModule, FilesizeConversionPipe, ProgressSpinnerModule],
+        MinifiedDatePipe, FieldsetModule, FilesizeConversionPipe, ProgressSpinnerModule, LinkifyPipe],
     providers: [Router],
     templateUrl: './playlist-details.component.html',
     styleUrl: './playlist-details.component.scss'
@@ -74,7 +75,7 @@ export class PlaylistDetailsComponent implements OnInit {
 
         //linkify
         this.selectedVideo.description = this.cp1252_to_utf8(this.selectedVideo.description)
-        this.selectedVideo.description = this.linkify(this.selectedVideo.description)
+        // this.selectedVideo.description = this.linkify(this.selectedVideo.description)
         this.player = new Plyr('#plyrId', { captions: { active: true }, debug: true });
         this.loaded = true
     }
