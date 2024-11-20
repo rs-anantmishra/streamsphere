@@ -83,7 +83,7 @@ WHERE P.Id > 0
 	AND F.FileType = 'Thumbnail'
 ORDER BY P.Id ASC`
 
-const GetVideoMetadata_Playlists string = `Select DISTINCT V.Id, V.Title, V.Description, V.DurationSeconds, V.OriginalURL, V.WebpageURL, V.IsFileDownloaded, V.IsDeleted, C.Name, V.LiveStatus, D.Domain, V.LikeCount, V.YoutubeViewCount as 'ViewsCount', V.WatchCount, V.UploadDate, V.Availability, F.Format, V.YoutubeVideoId, V.CreatedDate
+const GetVideoMetadata_Playlists string = `Select DISTINCT V.Id, V.Title, V.Description, V.DurationSeconds, V.OriginalURL, V.WebpageURL, V.IsFileDownloaded, V.IsDeleted, C.Name, V.LiveStatus, D.Domain, V.LikeCount, V.YoutubeViewCount as 'ViewsCount', V.WatchCount, V.UploadDate, V.Availability, F.Format, V.YoutubeVideoId, V.CreatedDate, PVF.PlaylistVideoIndex
 FROM tblVideos V
 INNER JOIN tblPlaylistVideoFiles PVF ON (V.Id = PVF.VideoId AND PVF.PlaylistId = ?)
 INNER JOIN tblChannels C ON V.ChannelId = C.Id

@@ -1,35 +1,36 @@
 package entities
 
 type Videos struct {
-	Id                int
-	Title             string
-	Description       string
-	DurationSeconds   int
-	OriginalURL       string
-	WebpageURL        string
-	LiveStatus        string
-	Availability      string
-	ViewsCount        int
-	LikesCount        int
-	DislikeCount      int
-	License           string
-	AgeLimit          int
-	PlayableInEmbed   string
-	UploadDate        string
-	ReleaseTimestamp  int
-	ModifiedTimestamp int
-	IsFileDownloaded  int
-	Files             []Files
-	Channel           Channel
-	Domain            Domain
-	Format            Format
-	Playlist          Playlist
-	Tags              []Tags
-	Categories        []Categories
-	WatchCount        int
-	YoutubeVideoId    string
-	IsDeleted         int
-	CreatedDate       int64
+	Id                 int
+	Title              string
+	Description        string
+	DurationSeconds    int
+	OriginalURL        string
+	WebpageURL         string
+	LiveStatus         string
+	Availability       string
+	ViewsCount         int
+	LikesCount         int
+	DislikeCount       int
+	License            string
+	AgeLimit           int
+	PlayableInEmbed    string
+	UploadDate         string
+	ReleaseTimestamp   int
+	ModifiedTimestamp  int
+	IsFileDownloaded   int
+	Files              []Files
+	Channel            Channel
+	Domain             Domain
+	Format             Format
+	Playlist           Playlist
+	Tags               []Tags
+	Categories         []Categories
+	WatchCount         int
+	YoutubeVideoId     string
+	IsDeleted          int
+	CreatedDate        int64
+	PlaylistVideoIndex int
 	//ThumbnailFilePath string
 	//VideoFilePath string
 }

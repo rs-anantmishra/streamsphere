@@ -1,6 +1,6 @@
-import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, Router, RouterModule, Scroll } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { SharedDataService } from '../../services/shared-data.service';
 import { VideoData } from '../../classes/video-data';
@@ -50,7 +50,6 @@ export class PlaylistDetailsComponent implements OnInit {
 
     async ngOnInit(): Promise<void> {
         this.isDarkMode = this.svcSharedData.getIsDarkMode()
-
         this.playlist = await this.svcSharedData.getPlaylist();
         this.playlist.video_data = await this.getPlaylistsVideos(this.playlist.info.playlist_id);
         //assign selected video
@@ -92,14 +91,11 @@ export class PlaylistDetailsComponent implements OnInit {
                 this.selectedVideo = item
             }
         });
-
         window.location.reload()
     }
 
     async getPlaylistsVideos(playlistId: number): Promise<VideoData[]> {
-
         let result!: VideoData[];
-
         //check-cached
         let playlist: SelectedPlaylist = await this.svcSharedData.getPlaylist();
         if (playlist.video_data.length > 0) {
@@ -143,7 +139,6 @@ export class PlaylistDetailsComponent implements OnInit {
         } else if (this.selectedVideo.video_id === video.video_id && this.isDarkMode) {
             result = 'fieldset-playlist-content-dark selected-video-dark'
         }
-
 
         return result
     }

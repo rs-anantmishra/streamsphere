@@ -144,7 +144,7 @@ func (r *repository) GetPlaylistVideos(playlistId int) ([]entities.Videos, error
 		var v entities.Videos
 		if err := rows.Scan(&v.Id, &v.Title, &v.Description, &v.DurationSeconds, &v.OriginalURL, &v.WebpageURL, &v.IsFileDownloaded,
 			&v.IsDeleted, &v.Channel.Name, &v.LiveStatus, &v.Domain.Domain, &v.LikesCount, &v.ViewsCount, &v.WatchCount, &v.UploadDate,
-			&v.Availability, &v.Format.Format, &v.YoutubeVideoId, &v.CreatedDate); err != nil {
+			&v.Availability, &v.Format.Format, &v.YoutubeVideoId, &v.CreatedDate, &v.PlaylistVideoIndex); err != nil {
 			return nil, fmt.Errorf("error fetching videos: %v", err)
 		}
 		lstPlaylistVideos = append(lstPlaylistVideos, v)

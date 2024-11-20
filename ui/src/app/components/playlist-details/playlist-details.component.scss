@@ -203,7 +203,9 @@
     margin: 2px 0px;
     font-size: 14px;
     font-weight: 700;
-    color: #999;
+    // color: #999;
+    color: #0099FF;
+    font-style: italic;
 }
 
 .fieldset-playlist-content-dark {
@@ -255,4 +257,9 @@
 
 .selected-video-light {
     background: #E4E0E1;
+}
+
+.playlist-video-index {
+    margin-right: 8px;
+    align-self: center;
 }

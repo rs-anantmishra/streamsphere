@@ -30,6 +30,7 @@ func getVideosPageInfo(videos []entities.Videos) []presenter.CardsInfoResponse {
 		cardsInfo.ViewsCount = elem.ViewsCount
 		cardsInfo.LikesCount = elem.LikesCount
 		cardsInfo.UploadDate = elem.UploadDate
+		cardsInfo.PlaylistVideoIndex = elem.PlaylistVideoIndex
 
 		//tags and categories - name only
 		cardsInfo.Tags, cardsInfo.Categories = getTagsCategories(elem.Tags, elem.Categories)
