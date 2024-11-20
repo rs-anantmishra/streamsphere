@@ -25,3 +25,4 @@ database/db/*
 
 # Unignore all `.exe` in `bin` dir
 #!*/bin/*.exe
+database/db/streamsphere.db
