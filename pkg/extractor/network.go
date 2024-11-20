@@ -8,6 +8,7 @@ import (
 	"os"
 	"slices"
 	"strings"
+	"sync"
 
 	"github.com/gofiber/fiber/v2/log"
 	c "github.com/rs-anantmishra/streamsphere/config"
@@ -115,39 +116,51 @@ func (d *download) ExtractThumbnail(fPath e.Filepath, lstSavedInfo []e.SavedInfo
 
 	//#region [download thumbnails]
 
+	wg := sync.WaitGroup{}
 	//for multi-channel playlists
 	var thumbnailFilePaths []string
 
+	var errors []string
 	for i := 0; i < len(lstSavedInfo); i++ {
+		savedInfo := lstSavedInfo[i]
+		wg.Add(1)
+		go func(savedInfo e.SavedInfo) {
+			args, command := cmdBuilderThumbnails(savedInfo.MediaInfo.WebpageURL, savedInfo)
+			logCommand := command + Space + args
 
-		args, command := cmdBuilderThumbnails(lstSavedInfo[i].MediaInfo.WebpageURL, lstSavedInfo[i])
-		logCommand := command + Space + args
+			//log executed command - in activity log later
+			_ = logCommand
+			cmd, stdout := buildProcess(args, GetCommandString())
 
-		//log executed command - in activity log later
-		_ = logCommand
-		cmd, stdout := buildProcess(args, GetCommandString())
+			err := cmd.Start()
+			handleErrors(err, "Thumbnail - Cmd.Start")
 
-		err := cmd.Start()
-		handleErrors(err, "Thumbnail - Cmd.Start")
+			pResult := executeProcess(stdout, true)
+			_, lstErrors, results := stripResultSections(pResult)
 
-		pResult := executeProcess(stdout, true)
-		_, errors, results := stripResultSections(pResult)
+			//if no errors and it is a multi channel playlist
+			if lstErrors == nil {
+				_, dirPath := buildDownloadPath(savedInfo, e.Thumbnail)
+				thumbnailFilePaths = append(thumbnailFilePaths, dirPath)
+			}
 
-		//if no erros and it is a multi channel playlist
-		if errors == nil {
-			_, dirPath := buildDownloadPath(lstSavedInfo[i], e.Thumbnail)
-			thumbnailFilePaths = append(thumbnailFilePaths, dirPath)
-		}
+			//results are not really needed - except maybe to check for errors.
+			_ = lstErrors
+			_ = results
 
-		//results are not really needed - except maybe to check for errors.
-		_ = errors
-		_ = results
+			if len(lstErrors) > 0 {
+				//Show error on UI
+				log.Error(lstErrors)
+				errors = append(errors, lstErrors...)
+				wg.Done()
+			}
+			wg.Done()
+		}(savedInfo)
+	}
+	wg.Wait()
 
-		if len(errors) > 0 {
-			//Show error on UI
-			log.Error(errors)
-			return []e.Files{}
-		}
+	if len(errors) > 0 {
+		return []e.Files{}
 	}
 	//#endregion
 
@@ -283,12 +296,18 @@ func (d *download) GetDownloadedMediaFileInfo(smi e.SavedInfo, fPath e.Filepath)
 
 func executeProcess(stdout io.ReadCloser, isFileDownload bool) []string {
 	// var result string
+	// activeItem := g.NewActiveItem()
+	// activeItem[0].VideoURL = "Metadata"
 	var b bytes.Buffer
 	for {
 		//Read data from pipe into temp
 		temp := make([]byte, 4096)
 		n, e := stdout.Read(temp)
 		b.WriteString(string(temp[:n]))
+
+		// result := b.String()
+		// results := strings.Split(result, "\n")
+		// activeItem[0].StatusMessage = results[len(results)-2]
 
 		//terminate loop at eof
 		if e != nil {
