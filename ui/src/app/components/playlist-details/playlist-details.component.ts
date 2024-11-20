@@ -8,12 +8,11 @@ import { PanelModule } from 'primeng/panel';
 import { TagModule } from 'primeng/tag';
 import { ChipModule } from 'primeng/chip';
 import { FieldsetModule } from 'primeng/fieldset';
-import { PlaylistsInfo, SelectedPlaylist } from '../../classes/playlists'
-import Plyr from 'plyr'
+import { PlaylistsInfo, SelectedPlaylist } from '../../classes/playlists';
 
-import { MinifiedViewCount } from '../../utilities/pipes/views-conversion.pipe'
+import { MinifiedViewCount } from '../../utilities/pipes/views-conversion.pipe';
 import { MinifiedLikeCount } from '../../utilities/pipes/likes-conversion.pipe';
-import { ScrollPanel, ScrollPanelModule } from 'primeng/scrollpanel';
+import { ScrollPanelModule } from 'primeng/scrollpanel';
 import { CommaSepStringFromArray } from "../../utilities/pipes/array-comma-sep.pipe";
 import { FormattedResolutionPipe } from "../../utilities/pipes/format-resolution.pipe";
 import { PlaylistsService } from '../../services/playlists.service';
@@ -21,6 +20,7 @@ import { MinifiedDatePipe } from "../../utilities/pipes/formatted-date.pipe";
 import { FilesizeConversionPipe } from "../../utilities/pipes/filesize-conversion.pipe";
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { LinkifyPipe } from '../../utilities/pipes/linkify.pipe';
+import Plyr from 'plyr';
 
 @Component({
     selector: 'app-playlist-details',
@@ -39,7 +39,7 @@ export class PlaylistDetailsComponent implements OnInit {
     playlist!: SelectedPlaylist;
     data!: any;
     // subscription!: Subscription;
-    player!: Plyr;
+    public player: any;
     selectedVideo: VideoData = new VideoData()
     playlistInfo!: PlaylistsInfo;
     playlistVideos: VideoData[] = [new VideoData()]
@@ -51,11 +51,10 @@ export class PlaylistDetailsComponent implements OnInit {
     async ngOnInit(): Promise<void> {
         this.isDarkMode = this.svcSharedData.getIsDarkMode()
 
-        this.playlist = this.svcSharedData.getPlaylist()
+        this.playlist = await this.svcSharedData.getPlaylist();
         this.playlist.video_data = await this.getPlaylistsVideos(this.playlist.info.playlist_id);
         //assign selected video
         this.playlistVideos = this.playlist.video_data
-
         if (this.playlist.active_video === -1) {
             //set 1st video as active 
             this.playlist.active_video = this.playlist.video_data[0].video_id
@@ -68,7 +67,7 @@ export class PlaylistDetailsComponent implements OnInit {
                 }
             });
         }
-
+        
         this.selectedVideo.media_url = this.selectedVideo.media_url.replaceAll('#', '%23')
         this.selectedVideo.thumbnail = this.selectedVideo.thumbnail.replaceAll('#', '%23')
         this.selectedVideo.webpage_url = this.selectedVideo.webpage_url.replaceAll('#', '%23')
@@ -76,7 +75,9 @@ export class PlaylistDetailsComponent implements OnInit {
         //linkify
         this.selectedVideo.description = this.cp1252_to_utf8(this.selectedVideo.description)
         // this.selectedVideo.description = this.linkify(this.selectedVideo.description)
-        this.player = new Plyr('#plyrId', { captions: { active: true }, debug: true });
+        this.player = new Plyr('#plyrId', { captions: { active: true }, keyboard: { global: true }, autoplay: true });
+        // use this for loading next item in playlist or repeating a single item
+        // this.player.on('ended', function() { console.log('hi there')});
         this.loaded = true
     }
 

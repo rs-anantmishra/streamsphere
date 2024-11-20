@@ -3,8 +3,8 @@
 </div>
 <div class="video-frame">
     <div class="player-video">
-        <video id='plyrId' controls crossorigin playsinline [poster]="selectedVideo.thumbnail" >
-            <source class="player-source" src='{{selectedVideo.media_url}}' type='video/webm'>
+        <video id='plyrId' controls crossorigin playsinline poster="{{selectedVideo.thumbnail}}" >
+            <source class="player-source" [src]='selectedVideo.media_url' type='video/webm'>
             <!-- Fallback for browsers that don't support the <video> element -->
             <a href='{{selectedVideo.media_url}}' download>Download</a>
         </video>

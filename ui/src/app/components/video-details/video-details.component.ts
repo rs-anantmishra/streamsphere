@@ -30,22 +30,23 @@ import { FilesizeConversionPipe } from "../../utilities/pipes/filesize-conversio
 })
 export class VideoDetailsComponent implements OnInit {
 
-    player: any;
+    public player: any;
     selectedVideo: VideoData = new VideoData()
 
     constructor(private svcSharedData: SharedDataService, private svcVideos: VideosService) {
     }
 
     async ngOnInit(): Promise<void> {
+        this.selectedVideo = await this.svcSharedData.getActivePlayerMetadata();
+        
         this.selectedVideo.media_url = this.selectedVideo.media_url.replaceAll('#', '%23')
         this.selectedVideo.thumbnail = this.selectedVideo.thumbnail.replaceAll('#', '%23')
         this.selectedVideo.webpage_url = this.selectedVideo.webpage_url.replaceAll('#', '%23')
-
-        this.selectedVideo = this.svcSharedData.getActivePlayerMetadata();
+        
         this.selectedVideo.description = this.cp1252_to_utf8(this.selectedVideo.description)
         this.selectedVideo.description = this.linkify(this.selectedVideo.description)
-
-        this.player = new Plyr('#plyrId', { captions: { active: true }, loop: { active: true }, autoplay: true });        
+        
+        this.player = new Plyr('#plyrId', { captions: { active: true }, keyboard: { global: true }, autoplay: true });        
     }
 
     async download(): Promise<void> {

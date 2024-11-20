@@ -62,6 +62,22 @@ export class DownloadsComponent implements OnInit {
     loading: boolean = false;
     urlInputDisabled: boolean = false;
 
+    sock = webSocket(this.wsApiURL)
+
+    activeDLImage = ''
+    activeDLChannel = ''
+    activeDLTitle = ''
+    activeDownload: VideoData = new VideoData()
+
+    //css-classes
+    homeBoxActive = 'home-box'
+    contentBoxActive = 'content-box'
+
+    urlPlaceholder = 'Video or Playlist URL'
+    sidebarVisible: boolean = false;
+    options: ExtractionOptions = { Identifier: '', GetAudioOnly: false, GetSubs: false }
+    isPlaylist: boolean = false
+
     constructor(private messageService: MessageService,
         private svcDownload: DownloadService,
         private svcFiles: FilesService,
@@ -72,20 +88,26 @@ export class DownloadsComponent implements OnInit {
         this.serverLogs = msg.serverLogs
     }
 
-    sock = webSocket(this.wsApiURL)
+    async ngOnInit() {
 
-    activeDLImage = ''
-    activeDLChannel = ''
-    activeDLTitle = ''
-    activeDownload: VideoData = new VideoData()
+        this.sharedData.isPlaylist = this.sharedData.getIsPlaylist()
+        this.sharedData.isDownloadActive = this.sharedData.getIsDownloadActive()
+        this.sharedData.activeDownloadMetadata = this.sharedData.getActiveDownloadMetadata()
 
+        //get queued-items on reload
+        await this.getQueuedItems(false)
+
+        //if there is an active download
+        this.getDownloadStatus()
+        this.populateVideoMetadata('init')
+    }
 
     async getDownloadStatus() {
         this.sock.subscribe();
         this.sock.next(this.wsMessage);
 
         this.sock.subscribe({
-            next: msg => { this.updateLogs(JSON.stringify(msg)); /*console.log(JSON.stringify(msg)) */ },
+            next: msg => { this.updateLogs(JSON.stringify(msg)); /* console.log(JSON.stringify(msg)) */ },
             error: err => { this.updateLogs('{"download": "web-socket connection is closed."}'); console.log('err:', err) },
             complete: () => { this.wsCloseWithDownloadComplete() }
         });
@@ -123,44 +145,11 @@ export class DownloadsComponent implements OnInit {
         }
     }
 
-    //css-classes
-    homeBoxActive = 'home-box'
-    contentBoxActive = 'content-box'
-
-    urlPlaceholder = 'Video or Playlist URL'
-    sidebarVisible: boolean = false;
-    options: ExtractionOptions = { Identifier: '', GetAudioOnly: false, GetSubs: false }
-    isPlaylist: boolean = false
-
     flipCheckbox(event: any, option: string): void {
         if (option === 'GetAudioOnly') {
             this.options.GetAudioOnly = !event.checked;
         } else if (option === 'GetSubs') {
             this.options.GetSubs = !event.checked;
-        }
-    }
-
-    async ngOnInit() {
-
-        this.sharedData.isPlaylist = this.sharedData.getIsPlaylist()
-        this.sharedData.isDownloadActive = this.sharedData.getIsDownloadActive()
-        this.sharedData.activeDownloadMetadata = this.sharedData.getActiveDownloadMetadata()
-
-        //get queued-items on reload
-        await this.getQueuedItems(false)
-
-        //if there is an active download
-        this.getDownloadStatus()
-        this.populateVideoMetadata('init')
-    }
-
-    ngOnDestroy() {
-        // prevent memory leak when component destroyed
-        if (this.sock.closed) {
-            this.sock.complete();
-            this.sock.unsubscribe();
-        } else {
-            this.sock.unsubscribe();
         }
     }
 
@@ -276,6 +265,16 @@ export class DownloadsComponent implements OnInit {
         let result = apiUrl.replace("http://", "ws://")
         result = result + "/ws/status"
         return result;
+    }
+
+    ngOnDestroy() {
+        // prevent memory leak when component destroyed
+        if (this.sock.closed) {
+            this.sock.complete();
+            this.sock.unsubscribe();
+        } else {
+            this.sock.unsubscribe();
+        }
     }
 
     //Toast Messages
