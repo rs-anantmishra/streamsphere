@@ -8,6 +8,9 @@ export class Messages {
     downloadComplete: string = 'Download completed successfully.'
     triggerDownloadApiSuccessResponse: string = 'Item added to download queue successfully.'
     downloadInfoIdentifier: string = '[download]'
+    getInfo: string = 'fetching content metadata & thumbnail before downloading, this might take a while!'
+    getChannel: string = 'fetching channel'
+    getTitle: string = 'fetching title'
 }
 
 //export const wsApiUrl: string = 'ws://localhost:3000/ws/downloadstatus'

@@ -155,6 +155,10 @@ export class DownloadsComponent implements OnInit {
 
     async GetMedia() {
         this.loading = true;
+        this.activeDLTitle = this.msg.getTitle
+        this.activeDLChannel = this.msg.getChannel
+        this.serverLogs = this.msg.getInfo
+
         this.urlInputDisabled = true;
         let metadataRequest = await this.GetMetadataRequest(this.options)
         if (metadataRequest.Indicator === '') {
@@ -188,6 +192,11 @@ export class DownloadsComponent implements OnInit {
     }
 
     GetMediaCompleteResult(showMessage: boolean = true) {
+
+        //failure case
+        if (this.activeDLTitle == this.msg.getTitle) { this.activeDLTitle = "" }
+        if (this.activeDLChannel == this.msg.getChannel) { this.activeDLChannel = "" }
+        if (this.serverLogs == this.msg.getInfo) { this.serverLogs = "" }
 
         //Complete Result
         this.resetDownloadOptions();
