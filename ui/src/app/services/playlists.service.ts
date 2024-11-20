@@ -47,4 +47,16 @@ export class PlaylistsService {
             responseType: 'blob'
         })
     }
+
+    //getAllVideos
+    async deleteVideoById(contentId: number): Promise<boolean> {
+        let url = '/homepage/video/' + contentId + '/delete'
+
+        return fetch(apiUrl + url, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        }).then(response => { return response.json(); })
+    }
 }

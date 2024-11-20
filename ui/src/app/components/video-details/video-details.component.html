@@ -3,7 +3,7 @@
 </div>
 <div class="video-frame">
     <div class="player-video">
-        <video id='plyrId' controls crossorigin playsinline poster="{{selectedVideo.thumbnail}}" >
+        <video id='plyrId' controls crossorigin playsinline poster="{{selectedVideo.thumbnail}}">
             <source class="player-source" [src]='selectedVideo.media_url' type='video/webm'>
             <!-- Fallback for browsers that don't support the <video> element -->
             <a href='{{selectedVideo.media_url}}' download>Download</a>
@@ -87,8 +87,27 @@
                             </p-tag>
                         </div>
                     </div>
-                    <!-- download -->
+
                     <div class="align-right">
+                        <!-- delete -->
+                        <div>
+                            <p-toast />
+                            <p-confirmPopup #confirmPopupRef>
+                                <ng-template pTemplate="headless" let-message let-test>
+                                    <div class="border-round p-3">
+                                        <span>{{ message.message }}</span>
+                                        <div class="flex align-items-center gap-2 mt-3">
+                                            <p-button (onClick)="accept()" label="Delete" size="small" />
+                                            <p-button (onClick)="reject()" label="Cancel" [outlined]="true"
+                                                size="small" />
+                                        </div>
+                                    </div>
+                                </ng-template>
+                            </p-confirmPopup>
+                        </div>
+                        <p-button icon="pi pi-trash" (onClick)="confirm($event, this.selectedVideo.video_id)"
+                            size="small" outlined="true" severity="danger" [style]="{'margin-right': '8px'}" label="" />
+                        <!-- download -->
                         <p-button icon="pi pi-download" (click)="download()" size="small" severity="secondary"
                             label="Download" />
                     </div>

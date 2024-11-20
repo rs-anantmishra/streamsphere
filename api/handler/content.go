@@ -89,6 +89,28 @@ func GetContentById(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).Status(fiber.StatusOK).JSON(fiber.Map{"status": status, "message": message, "data": result})
 }
 
+// Get Video by Id
+func DeleteContentById(c *fiber.Ctx) error {
+	//log context
+	id, _ := c.ParamsInt("id") // int 123 and no error
+	log.Info("Request Params:", id)
+
+	status := `success`
+	message := `content deleted`
+
+	svcRepo := videos.NewVideoRepo(sql.DB)
+	svcVideos := videos.NewVideoService(svcRepo)
+
+	result, err := svcVideos.DeleteContentById(id)
+	if err != nil {
+		log.Info("error deleting content", err)
+		status = `failure`
+		message = ``
+	}
+
+	return c.Status(fiber.StatusOK).Status(fiber.StatusOK).JSON(fiber.Map{"status": status, "message": message, "data": result})
+}
+
 // Get All Audios
 func GetAllAudios(c *fiber.Ctx) error {
 	//log context

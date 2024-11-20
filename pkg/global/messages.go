@@ -29,6 +29,7 @@ type DownloadStatus struct {
 	Thumbnail     string // Thumbnail base64
 	Duration      int    // content duration
 	Description   string // Video descriptions
+	Likes         int    //Likes Count
 	// PlaylistOrVideo string // Possible Values: "Playlist" or "Video"
 	// PlaylistId      int    // Playlist Id from db
 }

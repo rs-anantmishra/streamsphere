@@ -8,6 +8,7 @@ import (
 
 	"github.com/gofiber/fiber/v2/log"
 	p "github.com/rs-anantmishra/streamsphere/api/presenter"
+	"github.com/rs-anantmishra/streamsphere/config"
 	e "github.com/rs-anantmishra/streamsphere/pkg/entities"
 	g "github.com/rs-anantmishra/streamsphere/pkg/global"
 )
@@ -68,8 +69,8 @@ func createMetadataResponse(lstSavedInfo []e.SavedInfo, subtitles []e.Files, sub
 
 	//thumbnails // playlist thumbnails can be figured out on the UI side from Video Index
 	for i := range thumbnails {
-		cardMetaDataInfoList[i].Thumbnail = getImagesFromURL(thumbnails[i])
-		// cardMetaDataInfoList[i].Thumbnail = thumbnails[i].FilePath + "\\" + thumbnails[i].FileName
+		//cardMetaDataInfoList[i].Thumbnail = getImagesFromURL(thumbnails[i])
+		cardMetaDataInfoList[i].Thumbnail = urlTransforms(thumbnails[i].FilePath + string(os.PathSeparator) + thumbnails[i].FileName)
 	}
 
 	return cardMetaDataInfoList
@@ -226,4 +227,20 @@ func checkContentDomain(meta []e.MediaInformation) bool {
 		}
 	}
 	return true
+}
+
+func urlTransforms(url string) string {
+	filesHost := config.Config("FILE_HOSTING", false)
+	defaultFilesPath := config.Config("MEDIA_PATH", true)
+
+	//change media directory to public url
+	url = strings.ReplaceAll(url, defaultFilesPath, filesHost)
+
+	//direction of slashes for url formation
+	url = strings.ReplaceAll(url, "\\", "/")
+
+	//these chars will not be handled by webserver in file names
+	//chars: # = %23
+	url = strings.ReplaceAll(url, "#", "%23")
+	return url
 }

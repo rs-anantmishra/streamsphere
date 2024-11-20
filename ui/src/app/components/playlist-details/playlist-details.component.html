@@ -54,17 +54,19 @@
         <div class="content-extras">
             <p-fieldset [toggleable]="true">
                 <ng-template pTemplate="header">
-                    <span *ngIf="this.playlist != undefined" class="fieldset-header">{{this.playlist.info.playlist_title}}</span>
+                    <span *ngIf="this.playlist != undefined"
+                        class="fieldset-header">{{this.playlist.info.playlist_title}}</span>
                 </ng-template>
                 <div class="playlist-container">
                     <p-scrollPanel [style]="{ 'width': '100%', 'max-height': '400px', 'height': '400px' }">
                         @for (video of playlistVideos; track video.video_id) {
                         <!-- <div class="fieldset-playlist-content" (click)="changeContent(video.video_id)" [ngClass]="((this.selectedVideo.video_id === video.video_id) && this.isDarkMode) ? 'selected-video-dark' : 'selected-video-light'"> -->
-                        <div (click)="changeContent(video.video_id);" [ngClass]="this.getClass(video)" id="{{video.video_id}}">
+                        <div (click)="changeContent(video.video_id);" [ngClass]="this.getClass(video)"
+                            id="{{video.video_id}}">
                             <div class="playlist-video-index">
                                 {{video.playlist_video_index}}
                             </div>
-                            <div class="image-container">                                
+                            <div class="image-container">
                                 <img [src]="video.thumbnail" class="info-image-size" />
                             </div>
                             <div class="playlist-card-content">
@@ -110,8 +112,26 @@
                             </p-tag>
                         </div>
                     </div>
-                    <!-- download -->
                     <div class="align-right">
+                        <!-- delete -->
+                        <div>
+                            <p-toast />
+                            <p-confirmPopup #confirmPopupRef>
+                                <ng-template pTemplate="headless" let-message let-test>
+                                    <div class="border-round p-3">
+                                        <span>{{ message.message }}</span>
+                                        <div class="flex align-items-center gap-2 mt-3">
+                                            <p-button (onClick)="accept()" label="Delete" size="small" />
+                                            <p-button (onClick)="reject()" label="Cancel" [outlined]="true"
+                                                size="small" />
+                                        </div>
+                                    </div>
+                                </ng-template>
+                            </p-confirmPopup>
+                        </div>
+                        <p-button icon="pi pi-trash" (onClick)="confirm($event, this.selectedVideo.video_id)"
+                            size="small" outlined="true" severity="danger" [style]="{'margin-right': '8px'}" label="" />
+                        <!-- download -->
                         <p-button icon="pi pi-download" (click)="download()" size="small" severity="secondary"
                             label="Download" />
                     </div>

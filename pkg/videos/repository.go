@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 
+	"github.com/gofiber/fiber/v2/log"
 	q "github.com/rs-anantmishra/streamsphere/database/queries"
 	"github.com/rs-anantmishra/streamsphere/pkg/entities"
 )
@@ -11,6 +12,7 @@ import (
 type IRepository interface {
 	GetAllVideos() ([]entities.Videos, error)
 	GetContentById(int) ([]entities.Videos, error)
+	DeleteContentById(int) (bool, string, string, error)
 	GetPlaylistVideos(int) ([]entities.Videos, error)
 	GetAllPlaylists() ([]entities.Playlist, error)
 	GetVideoSearchInfo() ([]entities.ContentSearch, error)
@@ -386,4 +388,92 @@ func (r *repository) GetContentById(contentId int) ([]entities.Videos, error) {
 	}
 
 	return lstVideos, nil
+}
+
+func (r *repository) DeleteContentById(contentId int) (bool, string, string, error) {
+
+	var (
+		isDeleteSuccessful bool
+		ytVideoId          string
+		contentFilePath    string
+		thumbnailFilePath  string
+	)
+
+	//get Video Details - youtube video id
+	if err := r.db.QueryRow(q.GetVideoDeleteDetails, contentId).Scan(&ytVideoId, &contentFilePath, &thumbnailFilePath); err != nil {
+		if err == sql.ErrNoRows {
+			return isDeleteSuccessful, contentFilePath, thumbnailFilePath, fmt.Errorf("contentId %d: unknown id", contentId)
+		}
+		return isDeleteSuccessful, contentFilePath, thumbnailFilePath, fmt.Errorf("delete failed for id %d: %v", contentId, err)
+	}
+
+	//region tblVideoFileTags
+	tx, _ := r.db.Begin()
+	result, err := tx.Exec(q.DeleteVideoFileTags, contentId)
+	if err != nil {
+		tx.Rollback()
+	}
+	rowsAffected, err := result.RowsAffected()
+	if err == nil {
+		log.Info("Deleted %d entries for tblVideoFileTags", rowsAffected)
+	}
+	//endregion
+
+	//region tblVideoFileCategories
+	result, err = tx.Exec(q.DeleteVideoFileCategories, contentId)
+	if err != nil {
+		tx.Rollback()
+	}
+
+	rowsAffected, err = result.RowsAffected()
+	if err == nil {
+		log.Info("Deleted %d entries for tblVideoFileCategories", rowsAffected)
+	}
+	//endregion
+
+	//region tblPlaylistVideoFiles
+	result, err = tx.Exec(q.DeletePlaylistVideoFiles, contentId)
+	if err != nil {
+		tx.Rollback()
+	}
+
+	rowsAffected, err = result.RowsAffected()
+	if err == nil {
+		log.Info("Deleted %d entries for tblPlaylistVideoFiles", rowsAffected)
+	}
+	//endregion
+
+	//region tblFiles
+	result, err = tx.Exec(q.DeleteFiles, contentId)
+	if err != nil {
+		tx.Rollback()
+	}
+
+	rowsAffected, err = result.RowsAffected()
+	if err == nil {
+		log.Info("Deleted %d entries for tblFiles", rowsAffected)
+	}
+	//endregion
+
+	//region tblVideos
+	result, err = tx.Exec(q.DeleteVideos, contentId)
+	if err != nil {
+		tx.Rollback()
+	}
+
+	rowsAffected, err = result.RowsAffected()
+	if err == nil {
+		log.Info("Deleted %d entries for tblVideos", rowsAffected)
+	}
+	//endregion
+
+	//if all goes well, committ changes
+	tx.Commit()
+
+	isDeleteSuccessful = true
+	//DO BELOW IN SERVICE:
+	//remove content file from fs
+	//remove thumbnail file from fs
+
+	return isDeleteSuccessful, contentFilePath, thumbnailFilePath, nil
 }

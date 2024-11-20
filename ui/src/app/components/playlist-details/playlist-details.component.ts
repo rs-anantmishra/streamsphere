@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
@@ -8,6 +8,9 @@ import { PanelModule } from 'primeng/panel';
 import { TagModule } from 'primeng/tag';
 import { ChipModule } from 'primeng/chip';
 import { FieldsetModule } from 'primeng/fieldset';
+import { ConfirmPopup, ConfirmPopupModule } from 'primeng/confirmpopup';
+import { ConfirmationService, MessageService } from 'primeng/api';
+import { ToastModule } from 'primeng/toast';
 import { PlaylistsInfo, SelectedPlaylist } from '../../classes/playlists';
 
 import { MinifiedViewCount } from '../../utilities/pipes/views-conversion.pipe';
@@ -25,10 +28,10 @@ import Plyr from 'plyr';
 @Component({
     selector: 'app-playlist-details',
     standalone: true,
-    imports: [CommonModule, RouterModule, ButtonModule, PanelModule, ScrollPanelModule, TagModule,
+    imports: [CommonModule, RouterModule, ButtonModule, PanelModule, ScrollPanelModule, TagModule, ConfirmPopupModule, ToastModule,
         ChipModule, MinifiedViewCount, MinifiedLikeCount, CommaSepStringFromArray, FormattedResolutionPipe,
         MinifiedDatePipe, FieldsetModule, FilesizeConversionPipe, ProgressSpinnerModule, LinkifyPipe],
-    providers: [Router],
+    providers: [Router,  ConfirmationService, MessageService],
     templateUrl: './playlist-details.component.html',
     styleUrl: './playlist-details.component.scss'
 })
@@ -45,13 +48,20 @@ export class PlaylistDetailsComponent implements OnInit {
     playlistVideos: VideoData[] = [new VideoData()]
     loaded = false
 
-    constructor(private svcSharedData: SharedDataService, private svcPlaylists: PlaylistsService, private router: Router) {
+    @ViewChild(ConfirmPopup) confirmPopup!: ConfirmPopup;
+    constructor(private confirmationService: ConfirmationService, private messageService: MessageService, private svcSharedData: SharedDataService, private svcPlaylists: PlaylistsService, private router: Router) {
     }
 
     async ngOnInit(): Promise<void> {
         this.isDarkMode = this.svcSharedData.getIsDarkMode()
-        this.playlist = await this.svcSharedData.getPlaylist();
+        this.playlist = this.svcSharedData.getPlaylist();
+        
+        //get playlist videos
         this.playlist.video_data = await this.getPlaylistsVideos(this.playlist.info.playlist_id);
+
+        //sort playlist
+        this.playlist.video_data.sort((a, b) => a.playlist_video_index - b.playlist_video_index)
+
         //assign selected video
         this.playlistVideos = this.playlist.video_data
         if (this.playlist.active_video === -1) {
@@ -141,6 +151,36 @@ export class PlaylistDetailsComponent implements OnInit {
         }
 
         return result
+    }
+
+    accept() {
+        this.confirmPopup.accept();
+    }
+
+    reject() {
+        this.confirmPopup.reject();
+    }
+
+    confirm(event: Event, contentId: number) {
+        this.confirmationService.confirm({
+            target: event.target as EventTarget,
+            message: 'Are you sure you want to delete this content?',
+            accept: () => {
+                this.svcPlaylists.deleteVideoById(contentId).then((result: any) => {
+                    if (result.data) {
+                        this.messageService.add({ severity: 'info', summary: 'Confirmed', detail: 'Content Deleted', life: 3000 });
+                        setTimeout(() => {
+                            this.router.navigate(['/home'])
+                        }, 3000);
+                    } else {
+                        this.messageService.add({ severity: 'error', summary: 'Failed', detail: 'Deleted Failed', life: 3000 });
+                    }
+                });
+            },
+            reject: () => {
+                this.messageService.add({ severity: 'error', summary: 'Rejected', detail: 'Delete Cancelled', life: 3000 });
+            }
+        });
     }
 
     linkify(text: string) {

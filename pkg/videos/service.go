@@ -1,6 +1,10 @@
 package videos
 
 import (
+	"errors"
+	"fmt"
+	"os"
+
 	"github.com/rs-anantmishra/streamsphere/api/presenter"
 )
 
@@ -8,6 +12,7 @@ import (
 type IService interface {
 	GetVideos() ([]presenter.CardsInfoResponse, error)
 	GetContentById(int) ([]presenter.CardsInfoResponse, error)
+	DeleteContentById(int) (bool, error)
 	GetPlaylistVideos(int) ([]presenter.CardsInfoResponse, error)
 	GetPlaylists() ([]presenter.PlaylistsInfoResponse, error)
 	GetVideoSearchData() ([]presenter.ContentSearchResponse, error)
@@ -75,6 +80,30 @@ func (s *service) GetContentById(contentId int) ([]presenter.CardsInfoResponse, 
 		return nil, err
 	}
 	result := getVideosPageInfo(content)
+
+	return result, nil
+}
+
+func (s *service) DeleteContentById(contentId int) (bool, error) {
+	isDeleteSuccessful, contentFilePath, thumbnailFilePath, err := s.repository.DeleteContentById(contentId)
+
+	var result bool
+	//if delete is successful in db remove files from filessystem
+	if isDeleteSuccessful {
+		//remove content file
+		err := os.Remove(contentFilePath)
+		if err != nil {
+			return result, errors.New(fmt.Sprintln("Db cleared. Removal of file: %v failed.", contentFilePath))
+		}
+		//remove thumbnail file
+		err = os.Remove(thumbnailFilePath)
+		if err != nil {
+			return result, errors.New(fmt.Sprintln("Db cleared. Removal of file: %v failed.", thumbnailFilePath))
+		}
+		result = true
+	} else {
+		return isDeleteSuccessful, err
+	}
 
 	return result, nil
 }

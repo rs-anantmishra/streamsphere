@@ -69,6 +69,7 @@ func NetworkIngestMetadata(c *fiber.Ctx) error {
 					Channel:       result[idx].Channel,
 					Duration:      result[idx].Duration,
 					Thumbnail:     result[idx].Thumbnail,
+					Likes:         result[idx].LikesCount,
 				}
 				currentQueueIndex[0]++
 			}

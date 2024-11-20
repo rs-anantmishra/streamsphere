@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, OnInit, ViewEncapsulation, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
@@ -8,6 +8,9 @@ import { PanelModule } from 'primeng/panel';
 import { TagModule } from 'primeng/tag';
 import { ChipModule } from 'primeng/chip';
 import { FieldsetModule } from 'primeng/fieldset';
+import { ConfirmPopup, ConfirmPopupModule } from 'primeng/confirmpopup';
+import { ConfirmationService, MessageService } from 'primeng/api';
+import { ToastModule } from 'primeng/toast';
 import Plyr from 'plyr';
 
 import { MinifiedViewCount } from '../../utilities/pipes/views-conversion.pipe'
@@ -22,8 +25,9 @@ import { FilesizeConversionPipe } from "../../utilities/pipes/filesize-conversio
 @Component({
     selector: 'app-video-details',
     standalone: true,
-    imports: [CommonModule, RouterModule, ButtonModule, PanelModule, ScrollPanelModule, TagModule, ChipModule, MinifiedViewCount, MinifiedLikeCount, CommaSepStringFromArray, FormattedResolutionPipe, MinifiedDatePipe, FieldsetModule, FilesizeConversionPipe],
-    providers: [Router, SharedDataService],
+    imports: [CommonModule, RouterModule, ButtonModule, PanelModule, ScrollPanelModule, TagModule, ChipModule, ConfirmPopupModule, ToastModule,
+        MinifiedViewCount, MinifiedLikeCount, CommaSepStringFromArray, FormattedResolutionPipe, MinifiedDatePipe, FieldsetModule, FilesizeConversionPipe],
+    providers: [Router, SharedDataService, ConfirmationService, MessageService],
     templateUrl: './video-details.component.html',
     styleUrl: './video-details.component.scss',
     encapsulation: ViewEncapsulation.None
@@ -32,21 +36,22 @@ export class VideoDetailsComponent implements OnInit {
 
     public player: any;
     selectedVideo: VideoData = new VideoData()
-
-    constructor(private svcSharedData: SharedDataService, private svcVideos: VideosService) {
+    @ViewChild(ConfirmPopup) confirmPopup!: ConfirmPopup;
+    constructor(private confirmationService: ConfirmationService, private messageService: MessageService, private router: Router,
+        private svcSharedData: SharedDataService, private svcVideos: VideosService) {
     }
 
     async ngOnInit(): Promise<void> {
         this.selectedVideo = await this.svcSharedData.getActivePlayerMetadata();
-        
+
         this.selectedVideo.media_url = this.selectedVideo.media_url.replaceAll('#', '%23')
         this.selectedVideo.thumbnail = this.selectedVideo.thumbnail.replaceAll('#', '%23')
         this.selectedVideo.webpage_url = this.selectedVideo.webpage_url.replaceAll('#', '%23')
-        
+
         this.selectedVideo.description = this.cp1252_to_utf8(this.selectedVideo.description)
         this.selectedVideo.description = this.linkify(this.selectedVideo.description)
-        
-        this.player = new Plyr('#plyrId', { captions: { active: true }, keyboard: { global: true }, autoplay: true });        
+
+        this.player = new Plyr('#plyrId', { captions: { active: true }, keyboard: { global: true }, autoplay: true });
     }
 
     async download(): Promise<void> {
@@ -60,6 +65,36 @@ export class VideoDetailsComponent implements OnInit {
                 a.click();
                 URL.revokeObjectURL(objectUrl);
             })
+    }
+
+    accept() {
+        this.confirmPopup.accept();
+    }
+
+    reject() {
+        this.confirmPopup.reject();
+    }
+
+    confirm(event: Event, contentId: number) {
+        this.confirmationService.confirm({
+            target: event.target as EventTarget,
+            message: 'Are you sure you want to delete this content?',
+            accept: () => {
+                this.svcVideos.deleteVideoById(contentId).then((result: any) => {
+                    if (result.data) {
+                        this.messageService.add({ severity: 'info', summary: 'Confirmed', detail: 'Content Deleted', life: 3000 });
+                        setTimeout(() => {
+                            this.router.navigate(['/home'])
+                        }, 3000);
+                    } else {
+                        this.messageService.add({ severity: 'error', summary: 'Failed', detail: 'Deleted Failed', life: 3000 });
+                    }
+                });
+            },
+            reject: () => {
+                this.messageService.add({ severity: 'error', summary: 'Rejected', detail: 'Delete Cancelled', life: 3000 });
+            }
+        });
     }
 
     linkify(text: string) {
