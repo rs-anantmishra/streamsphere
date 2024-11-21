@@ -22,7 +22,7 @@
         <div class="content-section">
             <span *ngIf="metadata.title === ''">No queued downloads.</span>
             <div style="display: flex;">
-                <span>{{metadata.channel}} </span><br />
+                <span class="channel-style">{{metadata.channel}} </span><br />
                 <span style="margin-left: auto;">{{metadata.upload_date | minifiedDate}}</span>
             </div>
         </div>
