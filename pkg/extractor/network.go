@@ -125,6 +125,7 @@ func (d *download) ExtractThumbnail(fPath e.Filepath, lstSavedInfo []e.SavedInfo
 		savedInfo := lstSavedInfo[i]
 		wg.Add(1)
 		go func(savedInfo e.SavedInfo) {
+			defer wg.Done()
 			args, command := cmdBuilderThumbnails(savedInfo.MediaInfo.WebpageURL, savedInfo)
 			logCommand := command + Space + args
 
@@ -154,7 +155,6 @@ func (d *download) ExtractThumbnail(fPath e.Filepath, lstSavedInfo []e.SavedInfo
 				errors = append(errors, lstErrors...)
 				wg.Done()
 			}
-			wg.Done()
 		}(savedInfo)
 	}
 	wg.Wait()
@@ -393,10 +393,18 @@ func sanitizeResults(b bytes.Buffer) []string {
 // escaped single quotes within data replaced with escaped double quotes
 func proximityQuoteReplacement(data string) string {
 
+	//check for array
+	seqArraryCheck1 := strings.Index(data, ": ['")
+	seqArraryCheck2 := strings.LastIndex(data, "']")
+
+	isArray := false
+	if seqArraryCheck1 >= 0 && seqArraryCheck2 >= 0 {
+		isArray = true
+	}
 	//replace double-quotes with escaped-double-quotes
 	//if condition because in some case double quotes is text qualifier
 	//for the value field while the key is still using single quotes
-	if !strings.Contains(data, ": \"") {
+	if !strings.Contains(data, ": \"") && !isArray {
 		data = strings.ReplaceAll(data, "\"", "\\\"")
 	}
 
@@ -408,10 +416,31 @@ func proximityQuoteReplacement(data string) string {
 	dQ := []byte("\"")[0]
 	b := []byte(data)
 
-	seqArraryCheck1 := strings.Index(data, ": ['")
-	seqArraryCheck2 := strings.LastIndex(data, "']")
 	if seqArraryCheck1 >= 0 && seqArraryCheck2 >= 0 {
-		data = strings.ReplaceAll(data, "'", "\"")
+		//handle this case for arrays also
+		data = strings.ReplaceAll(data, "\\'", "'")
+
+		startIndex := strings.Index(data, ": [")
+		endIndex := strings.Index(data, "]}")
+
+		//replace inside arrays
+		strData := strings.Split(data[startIndex+3:endIndex], ", ")
+		var resultant []string
+		for _, elem := range strData {
+			if strings.Index(elem, "'") == 0 && strings.LastIndex(elem, "'") == len(elem)-1 {
+				elem = strings.ReplaceAll(elem, "'", "\"")
+			}
+			resultant = append(resultant, elem)
+		}
+
+		ans := strings.Join(resultant, ", ")
+		//value fix
+		data = strings.ReplaceAll(data, data[startIndex+3:endIndex], ans)
+
+		//key fix
+		keyEndIdx := strings.Index(data, ":")
+		replaced := strings.ReplaceAll(data[0:keyEndIdx], "'", "\"")
+		data = strings.ReplaceAll(data, data[0:keyEndIdx], replaced)
 		return data
 	}
 
@@ -433,8 +462,8 @@ func proximityQuoteReplacement(data string) string {
 
 	data = string(b)
 
-	// replace escaped-single-quotes that may appear inside data with single-quotes since it is no longer the qualifier
-	// placed at the end since, a string like -> {'channel': '/ Mad Moose Media \\\\'} <- here a backslash is escaped
+	// Case 1: replace escaped-single-quotes that may appear inside data with single-quotes since it is no longer the qualifier
+	// Case 2: placed at the end since, a string like -> {'channel': '/ Mad Moose Media \\\\'} <- here a backslash is escaped
 	// right before the	single quote but the single quote is not inside data and that does not need to be escaped.
 	data = strings.ReplaceAll(data, "\\'", "'")
 
