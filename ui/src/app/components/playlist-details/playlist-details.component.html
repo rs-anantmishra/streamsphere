@@ -129,10 +129,10 @@
                                 </ng-template>
                             </p-confirmPopup>
                         </div>
-                        <p-button icon="pi pi-trash" (onClick)="confirm($event, this.selectedVideo.video_id)"
+                        <p-button icon="pi pi-trash" (onClick)="confirm($event, this.selectedVideo.video_id)" [style]="{'margin': '2px'}"
                             size="small" outlined="true" severity="danger" [style]="{'margin-right': '8px'}" label="" />
                         <!-- download -->
-                        <p-button icon="pi pi-download" (click)="download()" size="small" severity="secondary"
+                        <p-button icon="pi pi-download" (click)="download()" size="small" severity="secondary" [style]="{'margin': '2px'}"
                             label="Download" />
                     </div>
                 </div>
