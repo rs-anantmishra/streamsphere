@@ -23,6 +23,7 @@ import { MinifiedDatePipe } from "../../utilities/pipes/formatted-date.pipe";
 import { FilesizeConversionPipe } from "../../utilities/pipes/filesize-conversion.pipe";
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { LinkifyPipe } from '../../utilities/pipes/linkify.pipe';
+import { UrlEncode } from '../../utilities/url-encode';
 import Plyr from 'plyr';
 
 @Component({
@@ -31,7 +32,7 @@ import Plyr from 'plyr';
     imports: [CommonModule, RouterModule, ButtonModule, PanelModule, ScrollPanelModule, TagModule, ConfirmPopupModule, ToastModule,
         ChipModule, MinifiedViewCount, MinifiedLikeCount, CommaSepStringFromArray, FormattedResolutionPipe,
         MinifiedDatePipe, FieldsetModule, FilesizeConversionPipe, ProgressSpinnerModule, LinkifyPipe],
-    providers: [Router,  ConfirmationService, MessageService],
+    providers: [Router,  ConfirmationService, MessageService, UrlEncode],
     templateUrl: './playlist-details.component.html',
     styleUrl: './playlist-details.component.scss'
 })
@@ -49,7 +50,8 @@ export class PlaylistDetailsComponent implements OnInit {
     loaded = false
 
     @ViewChild(ConfirmPopup) confirmPopup!: ConfirmPopup;
-    constructor(private confirmationService: ConfirmationService, private messageService: MessageService, private svcSharedData: SharedDataService, private svcPlaylists: PlaylistsService, private router: Router) {
+    constructor(private confirmationService: ConfirmationService, private messageService: MessageService, private svcSharedData: SharedDataService, 
+        private svcPlaylists: PlaylistsService, private router: Router, private urlEncode: UrlEncode) {
     }
 
     async ngOnInit(): Promise<void> {
@@ -77,9 +79,9 @@ export class PlaylistDetailsComponent implements OnInit {
             });
         }
         
-        this.selectedVideo.media_url = this.selectedVideo.media_url.replaceAll('#', '%23')
-        this.selectedVideo.thumbnail = this.selectedVideo.thumbnail.replaceAll('#', '%23')
-        this.selectedVideo.webpage_url = this.selectedVideo.webpage_url.replaceAll('#', '%23')
+        this.selectedVideo.media_url = this.urlEncode.encodedUrl(this.selectedVideo.media_url)
+        this.selectedVideo.thumbnail = this.urlEncode.encodedUrl(this.selectedVideo.thumbnail)
+        this.selectedVideo.webpage_url = this.urlEncode.encodedUrl(this.selectedVideo.webpage_url)
 
         //linkify
         this.selectedVideo.description = this.cp1252_to_utf8(this.selectedVideo.description)

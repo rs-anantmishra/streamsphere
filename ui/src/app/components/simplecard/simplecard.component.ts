@@ -13,28 +13,29 @@ import { CommaSepStringFromArray } from '../../utilities/pipes/array-comma-sep.p
 import { MinifiedViewCount } from '../../utilities/pipes/views-conversion.pipe';
 import { MinifiedDatePipe } from '../../utilities/pipes/formatted-date.pipe';
 import { FormattedResolutionPipe } from '../../utilities/pipes/format-resolution.pipe';
+import { UrlEncode } from '../../utilities/url-encode';
 
 @Component({
     selector: 'app-simplecard',
     standalone: true,
     imports: [ToastModule, CardModule, CommonModule, TooltipModule, TagModule, FilesizeConversionPipe, CommaSepStringFromArray, MinifiedViewCount, MinifiedDatePipe, FormattedResolutionPipe],
-    providers: [MessageService, Router],
+    providers: [MessageService, Router, UrlEncode],
     templateUrl: './simplecard.component.html',
     styleUrl: './simplecard.component.scss'
 })
 export class SimplecardComponent implements OnInit {
 
     @Input() metadata!: VideoData;
-    constructor(private router: Router, private svcSharedData: SharedDataService) {
+    constructor(private router: Router, private svcSharedData: SharedDataService, private urlEncode: UrlEncode) {
     }
 
     ngOnInit(): void {
         if (this.metadata.thumbnail == '') {
             this.metadata.thumbnail = './assets/noimage.png'
         } else {
-            this.metadata.media_url = this.metadata.media_url.replaceAll('#', '%23')
-            this.metadata.thumbnail = this.metadata.thumbnail.replaceAll('#', '%23')
-            this.metadata.webpage_url = this.metadata.webpage_url.replaceAll('#', '%23')
+            this.metadata.media_url = this.urlEncode.encodedUrl(this.metadata.media_url)
+            this.metadata.thumbnail = this.urlEncode.encodedUrl(this.metadata.thumbnail)
+            this.metadata.webpage_url = this.urlEncode.encodedUrl(this.metadata.webpage_url)
         }
     }
 

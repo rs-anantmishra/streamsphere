@@ -240,7 +240,8 @@ func urlTransforms(url string) string {
 	url = strings.ReplaceAll(url, "\\", "/")
 
 	//these chars will not be handled by webserver in file names
-	//chars: # = %23
-	url = strings.ReplaceAll(url, "#", "%23")
+	//chars: # = %23 //chars: % = %25 //handling this on ui
+	//url = strings.ReplaceAll(url, "#", "%23")
+	//url = strings.ReplaceAll(url, "%", "%25")
 	return url
 }
