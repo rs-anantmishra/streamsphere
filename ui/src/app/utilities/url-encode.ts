@@ -25,7 +25,7 @@ export class UrlEncode {
         for (let k = 0; k < this.chars.specialChars.length; k++) {
 
             if (url.indexOf(this.chars.specialChars[k].char) > 0) {
-                url = url.replace(this.chars.specialChars[k].char, this.chars.specialChars[k].encoded)
+                url = url.replaceAll(this.chars.specialChars[k].char, this.chars.specialChars[k].encoded)
             }
         }
         return url

@@ -67,7 +67,7 @@
                                 {{video.playlist_video_index}}
                             </div>
                             <div class="image-container">
-                                <img [src]="video.thumbnail" class="info-image-size" />
+                                <img [src]="this.urlEncode.encodedUrl(video.thumbnail)" class="info-image-size" />
                             </div>
                             <div class="playlist-card-content">
                                 <span class="playlist-card-title">{{video.title}}</span>

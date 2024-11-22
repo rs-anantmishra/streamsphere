@@ -51,7 +51,7 @@ export class PlaylistDetailsComponent implements OnInit {
 
     @ViewChild(ConfirmPopup) confirmPopup!: ConfirmPopup;
     constructor(private confirmationService: ConfirmationService, private messageService: MessageService, private svcSharedData: SharedDataService, 
-        private svcPlaylists: PlaylistsService, private router: Router, private urlEncode: UrlEncode) {
+        private svcPlaylists: PlaylistsService, private router: Router, readonly urlEncode: UrlEncode) {
     }
 
     async ngOnInit(): Promise<void> {

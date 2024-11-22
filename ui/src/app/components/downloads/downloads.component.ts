@@ -20,6 +20,7 @@ import { DividerModule } from 'primeng/divider';
 import { OverlayPanelModule } from 'primeng/overlaypanel';
 import { webSocket } from 'rxjs/webSocket'
 import { environment } from '../../../environments/environment';
+import { UrlEncode } from '../../utilities/url-encode';
 
 
 //Services & Classes
@@ -47,7 +48,7 @@ interface ExtractionOptions {
     imports: [ToastModule, ProgressBarModule, FieldsetModule, ProgressSpinnerModule, SidebarModule, CardModule, FormsModule,
         InputGroupModule, InputGroupAddonModule, InputTextModule, ButtonModule, CommonModule, CheckboxModule, PanelModule,
         SimplecardComponent, RemovePrefixPipe, ScrollPanelModule, DividerModule, OverlayPanelModule, FilesizeConversionPipe],
-    providers: [DownloadService, MessageService, Messages, FilesService],
+    providers: [DownloadService, MessageService, Messages, FilesService, UrlEncode],
     templateUrl: './downloads.component.html',
     styleUrl: './downloads.component.scss'
 })
@@ -82,6 +83,7 @@ export class DownloadsComponent implements OnInit {
         private svcDownload: DownloadService,
         private svcFiles: FilesService,
         private sharedData: SharedDataService,
+        readonly urlEncode: UrlEncode,
         private msg: Messages) {
 
         this.wsMessage = msg.wsMessage

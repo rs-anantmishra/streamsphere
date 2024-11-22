@@ -11,6 +11,7 @@ import { FieldsetModule } from 'primeng/fieldset';
 import { ConfirmPopup, ConfirmPopupModule } from 'primeng/confirmpopup';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
+import { UrlEncode } from '../../utilities/url-encode';
 import Plyr from 'plyr';
 
 import { MinifiedViewCount } from '../../utilities/pipes/views-conversion.pipe'
@@ -27,7 +28,7 @@ import { FilesizeConversionPipe } from "../../utilities/pipes/filesize-conversio
     standalone: true,
     imports: [CommonModule, RouterModule, ButtonModule, PanelModule, ScrollPanelModule, TagModule, ChipModule, ConfirmPopupModule, ToastModule,
         MinifiedViewCount, MinifiedLikeCount, CommaSepStringFromArray, FormattedResolutionPipe, MinifiedDatePipe, FieldsetModule, FilesizeConversionPipe],
-    providers: [Router, SharedDataService, ConfirmationService, MessageService],
+    providers: [Router, SharedDataService, ConfirmationService, MessageService, UrlEncode],
     templateUrl: './video-details.component.html',
     styleUrl: './video-details.component.scss',
     encapsulation: ViewEncapsulation.None
@@ -37,16 +38,16 @@ export class VideoDetailsComponent implements OnInit {
     public player: any;
     selectedVideo: VideoData = new VideoData()
     @ViewChild(ConfirmPopup) confirmPopup!: ConfirmPopup;
-    constructor(private confirmationService: ConfirmationService, private messageService: MessageService, private router: Router,
+    constructor(private confirmationService: ConfirmationService, private messageService: MessageService, private router: Router, private urlEncode: UrlEncode,
         private svcSharedData: SharedDataService, private svcVideos: VideosService) {
     }
 
     async ngOnInit(): Promise<void> {
         this.selectedVideo = await this.svcSharedData.getActivePlayerMetadata();
 
-        this.selectedVideo.media_url = this.selectedVideo.media_url.replaceAll('#', '%23')
-        this.selectedVideo.thumbnail = this.selectedVideo.thumbnail.replaceAll('#', '%23')
-        this.selectedVideo.webpage_url = this.selectedVideo.webpage_url.replaceAll('#', '%23')
+        this.selectedVideo.media_url = this.urlEncode.encodedUrl(this.selectedVideo.media_url)
+        this.selectedVideo.thumbnail = this.urlEncode.encodedUrl(this.selectedVideo.thumbnail)
+        this.selectedVideo.webpage_url = this.urlEncode.encodedUrl(this.selectedVideo.webpage_url)
 
         this.selectedVideo.description = this.cp1252_to_utf8(this.selectedVideo.description)
         this.selectedVideo.description = this.linkify(this.selectedVideo.description)
