@@ -45,9 +45,9 @@ export class VideoDetailsComponent implements OnInit {
     async ngOnInit(): Promise<void> {
         this.selectedVideo = await this.svcSharedData.getActivePlayerMetadata();
 
-        this.selectedVideo.media_url = this.urlEncode.encodedUrl(this.selectedVideo.media_url)
-        this.selectedVideo.thumbnail = this.urlEncode.encodedUrl(this.selectedVideo.thumbnail)
-        this.selectedVideo.webpage_url = this.urlEncode.encodedUrl(this.selectedVideo.webpage_url)
+        this.selectedVideo.media_url = this.selectedVideo.media_url
+        this.selectedVideo.thumbnail = this.selectedVideo.thumbnail
+        this.selectedVideo.webpage_url = this.selectedVideo.webpage_url
 
         this.selectedVideo.description = this.cp1252_to_utf8(this.selectedVideo.description)
         this.selectedVideo.description = this.linkify(this.selectedVideo.description)

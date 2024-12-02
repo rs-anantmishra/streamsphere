@@ -79,8 +79,8 @@ export class PlaylistDetailsComponent implements OnInit {
             });
         }
         
+        this.selectedVideo.thumbnail = this.selectedVideo.thumbnail
         this.selectedVideo.media_url = this.urlEncode.encodedUrl(this.selectedVideo.media_url)
-        this.selectedVideo.thumbnail = this.urlEncode.encodedUrl(this.selectedVideo.thumbnail)
         this.selectedVideo.webpage_url = this.urlEncode.encodedUrl(this.selectedVideo.webpage_url)
 
         //linkify
