@@ -113,7 +113,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
     }
 
     async buildAutoCompleteCache() {
-        let result = await this.videosSvc.getContentSearchInfo()        
+        let result = await this.videosSvc.getContentSearchInfo()
         if (result.data !== null) {
             this.groupedTitles = await this.buildAutoCompleteDataset(result)
         }
@@ -203,6 +203,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
         }
     }
 
+    //search result - clicked
     async navigateToVideo(selected: any) {
         //click on an empty search field
         if (selected !== undefined) {
@@ -213,9 +214,22 @@ export class HeaderComponent implements OnInit, OnDestroy {
         }
     }
 
+    //search result - enter pressed
+    async navigateToVideoOnEnter(selected: any, $event: KeyboardEvent) {
+        if ($event.key == 'Enter') {
+            //click on an empty search field
+            if (selected !== undefined) {
+                let result = await this.videosSvc.getContentById(selected.value)
+                if (result.data != null) {
+                    this.selectedVideo(result.data[0])
+                }
+            }
+        }
+    }
+
     selectedVideo(playVideo: VideoData) {
         this.selectedTitle = ''
         this.sharedDataSvc.setPlayVideo(playVideo);
-        this.router.navigate(['videos','play'])
+        this.router.navigate(['videos', 'play'])
     }
 }

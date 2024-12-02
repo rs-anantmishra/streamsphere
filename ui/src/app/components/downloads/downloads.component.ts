@@ -88,6 +88,8 @@ export class DownloadsComponent implements OnInit {
 
         this.wsMessage = msg.wsMessage
         this.serverLogs = msg.serverLogs
+
+        this.callFunction()
     }
 
     async ngOnInit() {
@@ -286,6 +288,17 @@ export class DownloadsComponent implements OnInit {
         } else {
             this.sock.unsubscribe();
         }
+    }
+
+    //placeholders = ['Video or Playlist URL', 'youtube.com/watch?v=cXdwGt_xPCI', 'cXdwGt_xPCI', 'youtu.be/cXdwGt_xPCI?si=r7GvF9rndAtAkb0n', 'youtube.com/watch?v=cABfEaP2IHo&list=PL3uDtbb3OvDMn16H-YSIHpdntVMZ6V4WU', 'youtube.com/playlist?list=PL3uDtbb3OvDMn16H-YSIHpdntVMZ6V4WU', 'PL3uDtbb3OvDMn16H-YSIHpdntVMZ6V4WU'];
+    placeholders = ['Video or Playlist URL', 'youtube.com/watch?v=videoId', 'videoId', 'youtu.be/videoId', 'youtube.com/watch?v=videoId&list=playlistId', 'youtube.com/playlist?list=playlistId', 'playlistId'];
+    index = 0;
+    callFunction() {
+        setInterval(() => {
+            if (this.index === this.placeholders.length - 1) { this.index = 0; } //reset
+            this.index = this.index + 1;
+            this.urlPlaceholder = this.placeholders[this.index]
+        }, 3000);
     }
 
     //Toast Messages
