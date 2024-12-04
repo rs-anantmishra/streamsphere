@@ -85,9 +85,20 @@ The application uses yt-dlp to fetch video metadata and thumbnail, if this is su
 ## 🌟 Upcoming Features
 Please refer this list of [upcoming work items](https://github.com/users/rs-anantmishra/projects/5) and please report any bugs if you find one!
 
+
+### 🎯 Design Update (Proposed)
+This update will support: 
+- scheduling playlist/channel updates
+- enable extraction of extremely huge channels/playlists
+- enable modular implementation of download filters
+- improved failure management
+- does not require additional docker builds
+
+![Application Design](https://github.com/user-attachments/assets/7800f70f-f902-4cef-9c75-8e2664666cbe)
+
+
 ## ❓ Help & Support
 Please feel free to report any [bugs](https://github.com/users/rs-anantmishra/projects/5) that you may have observed!
-If you want quicker support, send a message on streamsphere's [discord server](https://discord.com/channels/1310204495476690986/1310204600166649877)
 
 ## 📝 License
 GNU Affero General Public License v3.0
