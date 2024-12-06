@@ -63,7 +63,7 @@ volumes:
 -  youtube.com
 
 ## 〰️ Performance & Limitations
-The application uses yt-dlp to fetch video metadata and thumbnail, if this is successful, it attempts to download the video and shows download metrics on the UI. Since the application first fetches the video metadata, the Get UI operation may feel slow as it takes a while to fetch the metadata and download the video thumbnail, even more so when its a playlist or a channel. The aplpication does have the same limitations basically as yt-dlp as of the latest version. e.g. downloading a mix will end up in a never ending loop which keeps fetching data from yt-dlp.
+The application uses yt-dlp to fetch video metadata and thumbnail, if this is successful, it attempts to download the video and shows download metrics on the UI. Since the application first fetches the video metadata, the Get UI operation may feel slow as it takes a while to fetch the metadata and download the video thumbnail, even more so when its a playlist or a channel. The application does have the same limitations basically as yt-dlp as of the latest version. e.g. downloading a mix will end up in a never ending loop which keeps fetching data from yt-dlp.
 
 ## :hammer_and_wrench: Support & Compatibility
 
@@ -85,9 +85,20 @@ The application uses yt-dlp to fetch video metadata and thumbnail, if this is su
 ## 🌟 Upcoming Features
 Please refer this list of [upcoming work items](https://github.com/users/rs-anantmishra/projects/5) and please report any bugs if you find one!
 
+
+### 🎯 Design Update (Proposed)
+This update will support: 
+- scheduling playlist/channel updates
+- enable extraction of extremely huge channels/playlists
+- enable modular implementation of download filters
+- improved failure management
+- does not require additional docker builds
+
+![Application Design](https://github.com/user-attachments/assets/7800f70f-f902-4cef-9c75-8e2664666cbe)
+
+
 ## ❓ Help & Support
 Please feel free to report any [bugs](https://github.com/users/rs-anantmishra/projects/5) that you may have observed!
-If you want quicker support, send a message on streamsphere's [discord server](https://discord.com/channels/1310204495476690986/1310204600166649877)
 
 ## 📝 License
 GNU Affero General Public License v3.0
