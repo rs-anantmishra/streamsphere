@@ -88,9 +88,18 @@ Please refer this list of [upcoming work items](https://github.com/users/rs-anan
 ## 🔼 Updating yt-dlp
 The latest version of streamspehre (v0.1.15) includes an update to upgrade yt-dlp each time the container is stopped and started.
 It can also be manually updated by following the below steps:
-1. login into the container (sudo docker exec -it streamsphere bash)
-2. change directory to reach the yt-dlp binary (cd /app/utils/)
-3. Run the yt-dlp update (./yt-dlp_linux -U)
+```
+# login into the container
+sudo docker exec -it streamsphere bash
+```
+Once inside the docker container:
+```
+# change directory to reach the yt-dlp binary
+cd /app/utils/
+
+# run the yt-dlp update
+./yt-dlp_linux -U
+```
 
 Upcoming versions of streamsphere are planned to have a ui to update yt-dlp.
 
