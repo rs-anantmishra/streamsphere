@@ -33,7 +33,11 @@ mainfile=$(ls main-*.js)
 envsubst '${apiUrl},${baseUrl},${contentUrl}' < ./${mainfile} > ./${mainfile}.tmp && \
 mv ./${mainfile}.tmp ./${mainfile}
 
-cd /app/application
+# update yt-dlp
+cd /app/utils
+./yt-dlp_linux -U
+
 # run streamsphere
+cd /app/application
 chmod +x streamsphere
 ./streamsphere
