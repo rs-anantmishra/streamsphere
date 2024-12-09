@@ -119,3 +119,37 @@ Please feel free to report any [bugs](https://github.com/users/rs-anantmishra/pr
 
 ## 📝 License
 GNU Affero General Public License v3.0
+
+	/** repo resp:
+		1. Save-Metadata, 
+		2. Save-Filepaths
+		----------------------------
+		3. Save-IncomingRequests
+		4. Read-IncomingRequests		(Required on API only not here.)
+		5. Update-IncomingRequests
+		----------------------------
+		6. Read-RequestProcessStatus	(Required on API only not here.)
+		----------------------------
+		7. Save-ExpandedRequests
+		8. Get-ExpandedRequestItems
+		----------------------------
+	*/
+	svcRepo := extractor.NewDownloadRepo(database.DB)
+
+	/** network resp: 
+		a. Get-Metadata
+		b. Get-Mediafile
+		c. Get-Thumbnail
+		d. Get-Subtitles
+		e. Get-ExpandedRequests
+	*/
+	svcDownloads := extractor.NewDownload()
+
+	/** service resp: 
+		// Process Queue: 3-e-7
+		// Metadata: 9-(a-1-2)
+		// DownloadThumb: 9-(c-2)
+		// DownloadSubs: 9-(d-2)
+		// DownloadMedia: 9-(b-2)-5
+		// DownloadAll: 9-(c-2 + b-2 + d-2)-5
+	*/
