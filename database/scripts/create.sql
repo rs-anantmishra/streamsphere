@@ -192,8 +192,6 @@ CREATE TABLE IF NOT EXISTS tblAPIType(
 -------------------------------------------------------------
 --UPDATE-----------------------------------------------------
 
-
-
 CREATE TABLE IF NOT EXISTS tblRequests(
 	Id INTEGER PRIMARY KEY AUTOINCREMENT,
 	RequestUrl TEXT  NOT NULL, --Url or Identifier
@@ -206,6 +204,7 @@ CREATE TABLE IF NOT EXISTS tblRequests(
 	SubtitlesLanguage TEXT, --(Auto or provide language)
 	IsProxied INTEGER, --(boolean)
 	Proxy TEXT, -- Tor URL or CustomProxy		
+	IsQueued INTEGER NOT NULL, --(boolean) 
 	IsScheduled TEXT NOT NULL, --(Request created by scheduler, not to be executed by API)
 	CreatedDate INTEGER,
 	ModifiedDate INTEGER
@@ -215,7 +214,7 @@ CREATE TABLE IF NOT EXISTS tblRequests(
 CREATE TABLE IF NOT EXISTS tblRequestQueue(
 	Id INTEGER PRIMARY KEY AUTOINCREMENT,
 	RequestId INTEGER NOT NULL, 
-	ContentId TEXT NOT NULL, --(YTVideoId)
+	ContentId TEXT, --(YTVideoId)
 	ProcessStatus TEXT, --(Queued, Started, Processing Metadata, Downloading, Done, Failed)
 	RetryCount INTEGER, --(Manual retries only)
 	Message TEXT, --(store failure reason or 'completed successfully')
