@@ -85,6 +85,23 @@ The application uses yt-dlp to fetch video metadata and thumbnail, if this is su
 ## 🌟 Upcoming Features
 Please refer this list of [upcoming work items](https://github.com/users/rs-anantmishra/projects/5) and please report any bugs if you find one!
 
+## 🔼 Updating yt-dlp
+The latest version of streamspehre (v0.1.15) includes an update to upgrade yt-dlp each time the container is stopped and started.
+It can also be manually updated by following the below steps:
+```
+# login into the container
+sudo docker exec -it streamsphere bash
+```
+Once inside the docker container:
+```
+# change directory to reach the yt-dlp binary
+cd /app/utils/
+
+# run the yt-dlp update
+./yt-dlp_linux -U
+```
+
+Upcoming versions of streamsphere are planned to have a ui to update yt-dlp.
 
 ### 🎯 Design Update (Proposed)
 This update will support: 
@@ -102,3 +119,39 @@ Please feel free to report any [bugs](https://github.com/users/rs-anantmishra/pr
 
 ## 📝 License
 GNU Affero General Public License v3.0
+
+
+## 🗺️ Blueprint for extraction tool
+	/** repo resp:
+		1. Save-Metadata, 
+		2. Save-Filepaths
+		----------------------------
+		3. Save-IncomingRequests
+		4. Read-IncomingRequests	(Required on API only not here.)
+		5. Update-IncomingRequests
+		----------------------------
+		6. Read-RequestProcessStatus	(Required on API only not here.)
+		----------------------------
+		7. Save-ExpandedRequests
+		8. Get-ExpandedRequestItems
+		----------------------------
+	*/
+	svcRepo := extractor.NewDownloadRepo(database.DB)
+
+	/** network resp: 
+		a. Get-Metadata
+		b. Get-Mediafile
+		c. Get-Thumbnail
+		d. Get-Subtitles
+		e. Get-ExpandedRequests
+	*/
+	svcDownloads := extractor.NewDownload()
+
+	/** service resp: 
+		// Process Queue: 3-e-7
+		// Metadata: 9-(a-1-2)
+		// DownloadThumb: 9-(c-2)
+		// DownloadSubs: 9-(d-2)
+		// DownloadMedia: 9-(b-2)-5
+		// DownloadAll: 9-(c-2 + b-2 + d-2)-5
+	*/
