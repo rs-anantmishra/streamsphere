@@ -120,12 +120,14 @@ Please feel free to report any [bugs](https://github.com/users/rs-anantmishra/pr
 ## 📝 License
 GNU Affero General Public License v3.0
 
+
+## 🗺️ Blueprint for extraction tool
 	/** repo resp:
 		1. Save-Metadata, 
 		2. Save-Filepaths
 		----------------------------
 		3. Save-IncomingRequests
-		4. Read-IncomingRequests		(Required on API only not here.)
+		4. Read-IncomingRequests	(Required on API only not here.)
 		5. Update-IncomingRequests
 		----------------------------
 		6. Read-RequestProcessStatus	(Required on API only not here.)
