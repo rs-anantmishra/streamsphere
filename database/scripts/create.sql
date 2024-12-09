@@ -186,3 +186,89 @@ CREATE TABLE IF NOT EXISTS tblAPIType(
 	APIVersion TEXT NOT NULL DEFAULT 'v1',
 	IsActive INTEGER NOT NULL DEFAULT 1
 );
+
+
+-------------------------------------------------------------
+-------------------------------------------------------------
+--UPDATE-----------------------------------------------------
+
+
+
+CREATE TABLE IF NOT EXISTS tblRequests(
+	Id INTEGER PRIMARY KEY AUTOINCREMENT,
+	RequestUrl TEXT  NOT NULL, --Url or Identifier
+	RequestType TEXT, --(Video, Channel, Playlist, Unknown)
+	Metadata INTEGER, --(boolean)
+	Thumbnail INTEGER, --(boolean)
+	Content INTEGER, --(boolean)
+	ContentType INTEGER, --(Audio-Best, Video-Best, FormatId)
+	Subtitles INTEGER, --(boolean)
+	SubtitlesLanguage TEXT, --(Auto or provide language)
+	IsProxied INTEGER, --(boolean)
+	Proxy TEXT, -- Tor URL or CustomProxy		
+	IsScheduled TEXT NOT NULL, --(Request created by scheduler, not to be executed by API)
+	CreatedDate INTEGER,
+	ModifiedDate INTEGER
+);
+
+-- Expand Requests and dump into queue
+CREATE TABLE IF NOT EXISTS tblRequestQueue(
+	Id INTEGER PRIMARY KEY AUTOINCREMENT,
+	RequestId INTEGER NOT NULL, 
+	ContentId TEXT NOT NULL, --(YTVideoId)
+	ProcessStatus TEXT, --(Queued, Started, Processing Metadata, Downloading, Done, Failed)
+	RetryCount INTEGER, --(Manual retries only)
+	Message TEXT, --(store failure reason or 'completed successfully')
+	IsDeleted INTEGER, --(Soft delete if you want to cancel queued download)
+	CreatedDate INTEGER,
+	ModifiedDate INTEGER
+);
+
+
+CREATE TABLE IF NOT EXISTS tblProcess(
+	Id INTEGER PRIMARY KEY AUTOINCREMENT,
+	ProcessId INTEGER NOT NULL, --(pid for extractor, populated by API)
+	RequestId INTEGER NOT NULL, --(Current RequestId that is being processed)
+	Status INTEGER, --(boolean)[Processing, Stopped]
+	StartTime INTEGER,
+	EndTime INTEGER,
+	Message TEXT, --(If Panic is there, recover and log, if repeats, log and exit)
+	CreatedDate INTEGER	
+);
+
+CREATE TABLE IF NOT EXISTS tblDownloadStatistics(
+	Id INTEGER PRIMARY KEY AUTOINCREMENT,
+	RequestId INTEGER NOT NULL, 
+	ContentId INTEGER NOT NULL, 
+	DownloadString TEXT,
+	IsDownloadComplete INTEGER, --(boolean)
+	CreatedDate INTEGER,
+	ModifiedDate INTEGER
+);
+
+-- Populated by API
+-- Read by extractor
+-- Disabled schedules will use the SoftDelete in RequestQueue
+CREATE TABLE IF NOT EXISTS tblSchedule(
+	Id INTEGER PRIMARY KEY AUTOINCREMENT,
+	RequestQueueId INTEGER, --(Scheduled Request)
+	FriendlyName TEXT, --(friendly name or identifier -> default to guid)
+	Type TEXT, --(Channel or Playlist)
+	CRONExpression TEXT, --(default to update once every day at 2AM)	
+	IsEnabled INTEGER, --(boolean)
+	IsDeleted INTEGER, --(boolean)[Deletes CRON Schedule]
+	CreatedDate INTEGER
+);
+
+-- script will execute
+-- execution will produce these logs which will then be shown on the UI
+CREATE TABLE IF NOT EXISTS tblScheduleRunLogs (
+	Id INTEGER PRIMARY KEY AUTOINCREMENT,
+	ScheduleId INTEGER NOT NULL,
+	StartTime INTEGER, 
+	EndTime INTEGER,
+	Status TEXT, --(Started, Running, Completed, Failed)
+	Message TEXT, --(failure details or completed successfully) 
+	CreatedDate INTEGER,
+	ModifiedDate INTEGER
+);
