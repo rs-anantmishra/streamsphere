@@ -23,3 +23,39 @@ export class FilesService {
         }).then(response => { return response.json(); })
     }
 }
+
+/*
+    //getStorageStatus
+    getStorageStatus(): Observable<StorageStatusResponse> {
+        let url = apiUrl + '/storage/status'
+        return new Observable(subscriber => {
+            this.http.get(url)
+                .subscribe(response => {
+                    subscriber.next(JSON.parse(JSON.stringify(response)));
+                })
+        });
+    }
+
+// service.ts
+getData(): Observable<any> {
+    return new Observable(subscriber => {
+        this.http.get(url)
+          .pipe(catchError(this.handleError)
+          .subscribe(res => {
+              // Do my service.ts logic.
+              // ...
+              subscriber.next(res)
+              subscriber.complete()
+          }, err => subscriber.error(err))
+    })
+}
+
+// component.ts
+ngOnInit() {
+    this.service.getData().subscribe(res => {
+        // Do my component logic.
+        // ...
+    }, err => this.errors = err)
+}
+
+*/
