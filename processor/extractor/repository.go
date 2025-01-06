@@ -14,8 +14,9 @@ type IRepository interface {
 	SaveThumbnail([]e.Files) []int
 	SaveSubtitles([]e.Files) []int
 	SaveMediaContent([]e.Files) []int
-	GetVideoFileInfo(videoId int) (e.SavedInfo, e.Filepath, error)
+	GetVideoFileInfo(int) (e.SavedInfo, e.Filepath, error)
 	// GetQueuedVideoDetails(videoId int) (e.MinimalCardsInfo, error)
+	SavePlaylist(e.Playlist) int
 }
 
 type repository struct {
@@ -143,32 +144,19 @@ func (r *repository) SaveMetadata(metadata []e.MediaInformation, fp e.Filepath) 
 			_ = playlistVideoId
 		}
 
+		//if more items are added to playlist below logic will update the playlist
 		if playlistId > 0 && ytVideoId > 0 {
-
-			// this scenario is for when entire channel is being downloaded
-			var (
-				total int
-				index int
-			)
-			if elem.ChannelId == elem.YoutubePlaylistId {
-				total = len(metadata)
-				index = k + 1 //playlist-video-indices start from 1
-			} else {
-				total = elem.PlaylistCount
-				index = elem.PlaylistVideoIndex
-			}
-
 			//Update Total Videos in Playlist
 			//update bindings in tblVideos -- order of arguments is important.
 			var argsUpdateTotalItems []any
-			argsUpdateTotalItems = append(argsUpdateTotalItems, total)
+			argsUpdateTotalItems = append(argsUpdateTotalItems, elem.PlaylistCount)
 			argsUpdateTotalItems = append(argsUpdateTotalItems, playlistId)
 			rowsAffectedTotalItems := genericUpdate(*r, argsUpdateTotalItems, p.UpdatePlaylistItemCount)
 			_ = rowsAffectedTotalItems // can do something with it?
 
 			//Update Video Index
 			var argsUpdateItemIndex []any
-			argsUpdateItemIndex = append(argsUpdateItemIndex, index)
+			argsUpdateItemIndex = append(argsUpdateItemIndex, elem.PlaylistVideoIndex)
 			argsUpdateItemIndex = append(argsUpdateItemIndex, playlistId)
 			argsUpdateItemIndex = append(argsUpdateItemIndex, ytVideoId)
 			rowsAffectedItemIndex := genericUpdate(*r, argsUpdateItemIndex, p.UpdatePlaylistVideoIndex)
@@ -389,7 +377,7 @@ func (r *repository) GetVideoFileInfo(videoId int) (e.SavedInfo, e.Filepath, err
 // 	return minInfo, nil
 // }
 
-// Private Methods ////////////////////////////////////////////////////
+// region Private Methods ////////////////////////////////////////////////////
 
 func genericSave(r repository, args []any, genericQuery string) int {
 	resultId := -1
@@ -487,4 +475,28 @@ func subsFilesCheck(r repository, fileType string, videoId int, filename string,
 	}
 
 	return resultId
+}
+
+// endregion Private Methods ////////////////////////////////////////////////////
+
+func (r *repository) SavePlaylist(playlist e.Playlist) int {
+
+	playlistId := genericCheck(*r, playlist.YoutubePlaylistId, "Playlist", p.InsertPlaylistCheck)
+	if playlistId <= 0 && (playlist.Title != "" && playlist.ItemCount > 0) {
+		var args []any
+		args = append(args, playlist.Title)
+		args = append(args, playlist.ItemCount)
+		args = append(args, playlist.PlaylistChannel)
+		args = append(args, playlist.PlaylistChannelId)
+		args = append(args, playlist.PlaylistUploader)
+		args = append(args, playlist.PlaylistUploaderId)
+		args = append(args, 0)
+		args = append(args, playlist.YoutubePlaylistId)
+		args = append(args, time.Now().Unix())
+
+		playlistId = genericSave(*r, args, p.InsertPlaylist)
+		_ = playlistId
+	}
+
+	return playlistId
 }

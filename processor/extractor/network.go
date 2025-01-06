@@ -8,7 +8,6 @@ import (
 	"os"
 	"slices"
 	"strings"
-	"sync"
 
 	c "github.com/rs-anantmishra/streamsphere/utils/processor/config"
 	"github.com/rs-anantmishra/streamsphere/utils/processor/domain"
@@ -17,7 +16,7 @@ import (
 )
 
 type IDownload interface {
-	ExtractMetadata() ([]e.MediaInformation, e.Filepath)
+	ExtractMetadata(input e.PlaylistContentMeta) ([]e.MediaInformation, e.Filepath)
 	ExtractMediaContent(smi e.SavedInfo) int
 	ExtractSubtitles(fp e.Filepath, lstSavedInfo []e.SavedInfo) []e.Files
 	ExtractThumbnail(fp e.Filepath, lstSavedInfo []e.SavedInfo) []e.Files
@@ -112,10 +111,10 @@ func (d *download) GetPlaylistUploader(playlistUrl string) domain.PlaylistUpload
 
 // #region [public methods]
 
-func (d *download) ExtractMetadata() ([]e.MediaInformation, e.Filepath) {
+func (d *download) ExtractMetadata(input domain.PlaylistContentMeta) ([]e.MediaInformation, e.Filepath) {
 
 	// args, command, totalItems := cmdBuilderMetadata(d.p.Indicator)
-	videoUrl := ""
+	videoUrl := input.ContentId
 	args, command, totalItems := cmdBuilderMetadata(videoUrl)
 
 	logCommand := command + Space + args
@@ -187,16 +186,17 @@ func (d *download) ExtractThumbnail(fPath e.Filepath, lstSavedInfo []e.SavedInfo
 
 	//#region [download thumbnails]
 
-	wg := sync.WaitGroup{}
+	// wg := sync.WaitGroup{}
 	//for multi-channel playlists
 	var thumbnailFilePaths []string
 
 	var errors []string
 	for i := 0; i < len(lstSavedInfo); i++ {
 		savedInfo := lstSavedInfo[i]
-		wg.Add(1)
-		go func(savedInfo e.SavedInfo) {
-			defer wg.Done()
+		// wg.Add(1)
+		// go func(savedInfo e.SavedInfo) {
+		func(savedInfo e.SavedInfo) {
+			// defer wg.Done()
 			args, command := cmdBuilderThumbnails(savedInfo.MediaInfo.WebpageURL, savedInfo)
 			logCommand := command + Space + args
 
@@ -224,11 +224,11 @@ func (d *download) ExtractThumbnail(fPath e.Filepath, lstSavedInfo []e.SavedInfo
 				//Show error on UI
 				fmt.Println(lstErrors)
 				errors = append(errors, lstErrors...)
-				wg.Done()
+				// wg.Done()
 			}
 		}(savedInfo)
 	}
-	wg.Wait()
+	// wg.Wait()
 
 	if len(errors) > 0 {
 		return []e.Files{}
