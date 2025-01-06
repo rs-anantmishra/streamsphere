@@ -192,6 +192,7 @@ CREATE TABLE IF NOT EXISTS tblAPIType(
 -------------------------------------------------------------
 --UPDATE-----------------------------------------------------
 
+-- api will populate this
 CREATE TABLE IF NOT EXISTS tblRequests(
 	Id INTEGER PRIMARY KEY AUTOINCREMENT,
 	RequestUrl TEXT  NOT NULL, --Url or Identifier
@@ -199,13 +200,20 @@ CREATE TABLE IF NOT EXISTS tblRequests(
 	Metadata INTEGER, --(boolean)
 	Thumbnail INTEGER, --(boolean)
 	Content INTEGER, --(boolean)
-	ContentType INTEGER, --(Audio-Best, Video-Best, FormatId)
+	ContentFormat TEXT, --(Audio-Best, Video-Best, FormatId)
 	Subtitles INTEGER, --(boolean)
 	SubtitlesLanguage TEXT, --(Auto or provide language)
 	IsProxied INTEGER, --(boolean)
 	Proxy TEXT, -- Tor URL or CustomProxy		
-	IsQueued INTEGER NOT NULL, --(boolean) 
-	IsScheduled TEXT NOT NULL, --(Request created by scheduler, not to be executed by API)
+    Scheduled INTEGER NOT NULL, --(Request created by scheduler, not to be executed by API)
+	CreatedDate INTEGER,
+	ModifiedDate INTEGER
+);
+
+CREATE TABLE IF NOT EXISTS tblRequestStatus(
+	Id INTEGER PRIMARY KEY AUTOINCREMENT,
+    RequestId INTEGER,
+	RequestStatus INTEGER NOT NULL, -- Recieved, Analyzing, Queued, PartialComplete, Complete, Failed. 
 	CreatedDate INTEGER,
 	ModifiedDate INTEGER
 );
@@ -218,7 +226,7 @@ CREATE TABLE IF NOT EXISTS tblRequestQueue(
 	ProcessStatus TEXT, --(Queued, Started, Processing Metadata, Downloading, Done, Failed)
 	RetryCount INTEGER, --(Manual retries only)
 	Message TEXT, --(store failure reason or 'completed successfully')
-	IsDeleted INTEGER, --(Soft delete if you want to cancel queued download)
+	Cancelled INTEGER, --(Soft delete if you want to cancel queued download)    
 	CreatedDate INTEGER,
 	ModifiedDate INTEGER
 );
@@ -228,7 +236,7 @@ CREATE TABLE IF NOT EXISTS tblProcess(
 	Id INTEGER PRIMARY KEY AUTOINCREMENT,
 	ProcessId INTEGER NOT NULL, --(pid for extractor, populated by API)
 	RequestId INTEGER NOT NULL, --(Current RequestId that is being processed)
-	Status INTEGER, --(boolean)[Processing, Stopped]
+	Status INTEGER, --(boolean)[0 - Stopped, 1 - Processing]
 	StartTime INTEGER,
 	EndTime INTEGER,
 	Message TEXT, --(If Panic is there, recover and log, if repeats, log and exit)
@@ -238,9 +246,9 @@ CREATE TABLE IF NOT EXISTS tblProcess(
 CREATE TABLE IF NOT EXISTS tblDownloadStatistics(
 	Id INTEGER PRIMARY KEY AUTOINCREMENT,
 	RequestId INTEGER NOT NULL, 
-	ContentId INTEGER NOT NULL, 
+	ContentId TEXT NOT NULL, 
 	DownloadString TEXT,
-	IsDownloadComplete INTEGER, --(boolean)
+	IsDownloadComplete INTEGER, --(boolean) [1 - yes, 2 - no]
 	CreatedDate INTEGER,
 	ModifiedDate INTEGER
 );
@@ -250,11 +258,11 @@ CREATE TABLE IF NOT EXISTS tblDownloadStatistics(
 -- Disabled schedules will use the SoftDelete in RequestQueue
 CREATE TABLE IF NOT EXISTS tblSchedule(
 	Id INTEGER PRIMARY KEY AUTOINCREMENT,
-	RequestQueueId INTEGER, --(Scheduled Request)
+	RequestId INTEGER, --(Scheduled Request)
 	FriendlyName TEXT, --(friendly name or identifier -> default to guid)
 	Type TEXT, --(Channel or Playlist)
 	CRONExpression TEXT, --(default to update once every day at 2AM)	
-	IsEnabled INTEGER, --(boolean)
+	IsEnabled INTEGER, --(boolean) [1 - yes, 2 - no]
 	IsDeleted INTEGER, --(boolean)[Deletes CRON Schedule]
 	CreatedDate INTEGER
 );
