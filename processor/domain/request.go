@@ -1,6 +1,8 @@
 package domain
 
-//Populated by Streamsphere API
+// Populated by Streamsphere API ////////////////////////////////
+// ContentFormat will come from ui, possible values:
+// Audio-Best, Video-Best, FormatId
 type Request struct {
 	Id                int
 	RequestUrl        string
@@ -18,15 +20,6 @@ type Request struct {
 	ModifiedDate      int
 }
 
-// ContentFormat will come from ui, possible values:
-// Audio-Best, Video-Best, FormatId
-
-// Below will come from UI and will be checked here if its unknown.
-const RequestType_Channel string = `Channel`
-const RequestType_Playlist string = `Playlist`
-const RequestType_Video string = `Video`
-const RequestType_Unknown string = `Unknown`
-
 //Populated by Processor CLI
 type RequestStatus struct {
 	Id            int
@@ -41,20 +34,20 @@ const RequestStatus_Analyzing string = `Analyzing`             //Request expansi
 const RequestStatus_Queued string = `Queued`                   //Request expansion is complete and expanded requests are queued
 const RequestStatus_ProcessQueue string = `ProcessQueue`       //Queued requests are being processed
 const RequestStatus_PartialComplete string = `PartialComplete` //completed status - Some Videos in playlist/channel failed to download (except private videos)
-const RequestStatus_Complete string = `Complete`               //completed status
+const RequestStatus_Complete string = `Complete`               //completed status - Successful
 const RequestStatus_Failed string = `Failed`                   //completed status - Failed at 'Analyzing' or 'Post Queued'
 
 //Populated by Processor CLI
 type RequestQueue struct {
-	RequestQueueId int
-	RequestId      int
-	ContentId      int //yt videoId
-	ProcessStatus  string
-	RetryCount     int
-	Message        string
-	Cancelled      Bool
-	CreatedDate    int
-	ModifiedDate   int
+	Id            int
+	RequestId     int
+	ContentId     string //yt videoId
+	ProcessStatus string
+	RetryCount    int
+	Message       string
+	Cancelled     Bool
+	CreatedDate   int
+	ModifiedDate  int
 }
 
 const ProcessStatus_Queued string = `Queued`                      // Item is queued for processing
@@ -111,6 +104,13 @@ type PlaylistContentMeta struct {
 type PlaylistUploader struct {
 	PlaylistUploaderId string `json:"playlist_uploader_id"`
 	PlaylistId         string `json:"playlist_id"`
+}
+
+type FilenameInfo struct {
+	Id      int
+	Domain  string `json:"webpage_url_domain"`
+	Channel string `json:"channel"`
+	Title   string `json:"title"`
 }
 
 //1. Get all playlists for channel, then -

@@ -10,7 +10,7 @@ import (
 )
 
 type IRepository interface {
-	SaveMetadata([]e.MediaInformation, e.Filepath) []e.SavedInfo
+	SaveMetadata([]e.MediaInformation) []e.SavedInfo
 	SaveThumbnail([]e.Files) []int
 	SaveSubtitles([]e.Files) []int
 	SaveMediaContent([]e.Files) []int
@@ -29,7 +29,7 @@ func NewRepository(Database *sql.DB) IRepository {
 	}
 }
 
-func (r *repository) SaveMetadata(metadata []e.MediaInformation, fp e.Filepath) []e.SavedInfo {
+func (r *repository) SaveMetadata(metadata []e.MediaInformation) []e.SavedInfo {
 
 	var savedInfo []e.SavedInfo
 

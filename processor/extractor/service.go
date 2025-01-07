@@ -1,7 +1,6 @@
 package extractor
 
 import (
-	"errors"
 	"fmt"
 	"time"
 
@@ -13,9 +12,8 @@ import (
 )
 
 type IService interface {
-	ExtractIngestMetadata() ([]e.MetadataResponse, error) // here we have an option to dl subs as well, when the metadata is available.
-	ExtractIngestMedia()                                  //in case it was a metadata only files, youre free to dl video at a later time.
-	ExtractSubtitlesOnly(string) bool                     // here we are navigating to a Video and downloading subs for it.
+	ExtractIngestMedia()              //in case it was a metadata only files, youre free to dl video at a later time.
+	ExtractSubtitlesOnly(string) bool // here we are navigating to a Video and downloading subs for it.
 
 	/****** UPDATES *********************************************/
 	ProcessRequests()
@@ -33,39 +31,6 @@ func NewDownloadService(r IRepository, rq r.IRequestRepository, d IDownload) ISe
 		download:   d,
 		request:    rq,
 	}
-}
-
-// func (s *service) ExtractIngestMetadata(params e.IncomingRequest) ([]e.MetadataResponse, error) {
-func (s *service) ExtractIngestMetadata() ([]e.MetadataResponse, error) {
-	var response []e.MetadataResponse
-
-	metadata, fp := s.download.ExtractMetadata(e.PlaylistContentMeta{})
-	if len(metadata) > 0 {
-		domainCheck := checkContentDomain(metadata) //temporary check placed
-		if !domainCheck {
-			return response, errors.New("failed: domain constraint")
-		}
-
-		lstSavedInfo := s.repository.SaveMetadata(metadata, fp)
-		//error check here before continuing exec for thumbs and subs
-
-		var thumbnails []e.Files
-		var subtitles []e.Files
-
-		thumbnails = s.download.ExtractThumbnail(fp, lstSavedInfo)
-		s.repository.SaveThumbnail(thumbnails)
-
-		// if params.SubtitlesReq {
-		if true {
-			subtitles = s.download.ExtractSubtitles(fp, lstSavedInfo)
-			s.repository.SaveSubtitles(subtitles)
-		}
-
-		// response = createMetadataResponse(lstSavedInfo, subtitles, params.SubtitlesReq, thumbnails)
-		response = createMetadataResponse(lstSavedInfo, subtitles, true, thumbnails)
-		return response, nil
-	}
-	return response, nil
 }
 
 func (s *service) ExtractIngestMedia() {
@@ -144,73 +109,86 @@ func (s *service) ProcessRequests() {
 		//Single Video
 		if len(plResult) == 1 && plResult[0].PlaylistChannelId == "" {
 			//Execute Metadata and so on
-			processContent(s, e.PlaylistContentMeta{ContentId: requests[i].RequestUrl, PlaylistContentIndex: 0}, e.Playlist{Id: -1})
+			processContent(s, e.PlaylistContentMeta{ContentId: requests[i].RequestUrl, PlaylistContentIndex: 0}, e.Playlist{Id: -1}, requests[i])
 		}
 		//Single Playlist
 		if plResult == nil {
 			//get playlist details by uploader id
 			plResult, contentResult := getPlaylistResult(s, requests[i])
-			processPlaylist(s, plResult[0], contentResult)
+			processPlaylist(s, plResult[0], contentResult, requests[i])
 		}
 		//Channel
 		if len(plResult) > 0 && plResult[0].PlaylistChannelId != "" {
-			processChannel(s, plResult)
+			processChannel(s, plResult, requests[i])
 		}
 	}
 
 }
 
-func processContent(s *service, request e.PlaylistContentMeta, playlist e.Playlist) bool {
+func processContent(s *service, content e.PlaylistContentMeta, playlist e.Playlist, request e.RequestWithStatusId) bool {
 
-	metadata, fp := s.download.ExtractMetadata(request)
-
-	if len(metadata) > 0 {
-		domainCheck := checkContentDomain(metadata) //temporary check placed
-		if !domainCheck {
-			return false
-			//return response, errors.New("failed: domain constraint")
+	var contentMeta e.MediaInformation
+	if request.Metadata == 1 {
+		metadata := s.download.ExtractMetadata(content)
+		if len(metadata) > 0 {
+			domainCheck := checkContentDomain(metadata) //temporary check placed
+			if !domainCheck {
+				// log: errors.New("failed: domain constraint")
+				return false
+			}
 		}
 
 		//update playlist attributes
-		metadata[0] = mapPlaylistMetadata(playlist, metadata[0], request.PlaylistContentIndex)
-
+		metadata[0] = mapPlaylistMetadata(playlist, metadata[0], content.PlaylistContentIndex)
+		contentMeta = metadata[0]
 		//save metadata
-		lstSavedInfo := s.repository.SaveMetadata(metadata, fp)
+		lstSavedInfo := s.repository.SaveMetadata(metadata)
+		fmt.Println(lstSavedInfo)
+	}
 
-		var thumbnails []e.Files
-		var subtitles []e.Files
+	//savedInfo - Channel, Domain, Title, (PlaylistId - won't be needed anymore)
+	if request.Thumbnail == 1 {
 
-		thumbnails = s.download.ExtractThumbnail(fp, lstSavedInfo)
-		s.repository.SaveThumbnail(thumbnails)
-
-		// if params.SubtitlesReq {
-		if true {
-			subtitles = s.download.ExtractSubtitles(fp, lstSavedInfo)
-			s.repository.SaveSubtitles(subtitles)
+		//filenames to be formed require this info
+		var filenameInfo e.FilenameInfo
+		if request.Metadata == 0 {
+			filenameInfo = s.download.ExtractFilenameInfo(content.ContentId)
+		} else if request.Metadata == 1 {
+			filenameInfo = e.FilenameInfo{Domain: contentMeta.Domain, Channel: contentMeta.Channel, Title: contentMeta.Title}
 		}
 
-		// response = createMetadataResponse(lstSavedInfo, subtitles, true, thumbnails)
-		// return response, nil
-		return true
+		thumbnails := s.download.ExtractThumbnail(filenameInfo, content.ContentId)
+		s.repository.SaveThumbnail(thumbnails)
+	}
+
+	if request.Subtitles == 1 {
+		subtitles := s.download.ExtractSubtitles(e.Filepath{}, []e.SavedInfo{})
+		s.repository.SaveSubtitles(subtitles)
 
 	}
 
-	return false
+	if request.Content == 1 {
+		//place content downloader here.
+	}
+	// response = createMetadataResponse(lstSavedInfo, subtitles, true, thumbnails)
+	// return response, nil
+	return true
+
 }
 
-func processPlaylist(s *service, playlist e.Playlist, contentResult e.PlaylistContent) {
+func processPlaylist(s *service, playlist e.Playlist, contentResult e.PlaylistContent, request e.RequestWithStatusId) {
 
 	//update tblPlaylists
 	// playlist.Id = s.repository.SavePlaylist(playlist)
 
 	//call process content - tblPVF will be updated here.
 	for i := range contentResult.Content {
-		result := processContent(s, contentResult.Content[i], playlist)
+		result := processContent(s, contentResult.Content[i], playlist, request)
 		fmt.Println(result)
 	}
 }
 
-func processChannel(s *service, plResult []e.Playlist) {
+func processChannel(s *service, plResult []e.Playlist, request e.RequestWithStatusId) {
 	//handle playlists in channel
 	for k := range plResult {
 		playlistContentInfo := domain.PlaylistContent{PlaylistId: plResult[k].YoutubePlaylistId, Content: []e.PlaylistContentMeta{}}
@@ -218,7 +196,7 @@ func processChannel(s *service, plResult []e.Playlist) {
 		fmt.Println(contentResult)
 
 		//handle playlists
-		processPlaylist(s, plResult[k], contentResult)
+		processPlaylist(s, plResult[k], contentResult, request)
 	}
 }
 
