@@ -86,3 +86,5 @@ const UpdatePVFThumbnailFileId string = `Select F.Id
 										 INNER JOIN tblPlaylistVideoFiles PVF ON PVF.VideoId = F.VideoId
 										 WHERE PVF.PlaylistId = ? AND F.FileType = 'Thumbnail'
 										 AND F.VideoId = ?`
+
+const GetVideoIdByContentId string = `SELECT Id, ChannelId FROM tblVideos WHERE YoutubeVideoId = ?;`

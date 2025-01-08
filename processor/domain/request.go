@@ -107,10 +107,13 @@ type PlaylistUploader struct {
 }
 
 type FilenameInfo struct {
-	Id      int
-	Domain  string `json:"webpage_url_domain"`
-	Channel string `json:"channel"`
-	Title   string `json:"title"`
+	ContentId    string
+	Id           int
+	PlaylistId   int    //this may need to contain channelId going onwards -- to be verified.
+	Domain       string `json:"webpage_url_domain"`
+	Channel      string `json:"channel"`
+	Title        string `json:"title"`
+	ThumbnailUrl string `json:"thumbnail"`
 }
 
 //1. Get all playlists for channel, then -

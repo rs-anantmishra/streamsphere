@@ -7,27 +7,9 @@ import (
 	"strings"
 	"time"
 
-	// p "github.com/rs-anantmishra/streamsphere/api/presenter"
 	"github.com/rs-anantmishra/streamsphere/utils/processor/config"
 	e "github.com/rs-anantmishra/streamsphere/utils/processor/domain"
-	// g "github.com/rs-anantmishra/streamsphere/pkg/global"
 )
-
-// func falsifyQueueAlive() {
-// 	qa := g.NewQueueAlive()
-// 	qa[0] = 0
-// }
-
-// func clearActiveItem(activeItem []g.DownloadStatus) []g.DownloadStatus {
-
-// 	//empty out active item
-// 	activeItem[0].VideoURL = ""
-// 	activeItem[0].VideoId = 0
-// 	activeItem[0].StatusMessage = ""
-// 	activeItem[0].State = 0
-
-// 	return activeItem
-// }
 
 func createMetadataResponse(lstSavedInfo []e.SavedInfo, subtitles []e.Files, subtitlesReq bool, thumbnails []e.Files) []e.MetadataResponse {
 	//bind here to presenter entity
@@ -149,7 +131,7 @@ func getImagesFromURLString(filepath string) string {
 // Windows (FAT32, NTFS): Any Unicode except NUL, \, /, :, *, ?, ", <, >, |. Also, no space character at the start or end, and no period at the end.
 // Mac(HFS, HFS+): Any valid Unicode except : or /
 // Linux(ext[2-4]): Any byte except NUL or /
-func removeForbiddenChars(metadata []e.MediaInformation) []e.MediaInformation {
+func removeForbiddenChars(metadata e.MediaInformation) e.MediaInformation {
 
 	// / = 10744
 
@@ -158,41 +140,41 @@ func removeForbiddenChars(metadata []e.MediaInformation) []e.MediaInformation {
 	singleSpace := " "
 	doubleSpaces := "  "
 
-	for i := 0; i < len(metadata); i++ {
-		for _, elem := range forbiddenChars {
+	// for i := 0; i < len(metadata); i++ {
+	for _, elem := range forbiddenChars {
 
-			//handle Domain
-			if strings.Contains(metadata[i].Domain, elem) {
-				metadata[i].Domain = strings.ReplaceAll(metadata[i].Domain, elem, emptyString)
-				metadata[i].Domain = strings.TrimSpace(metadata[i].Domain)                             //Trim leading and trailing spaces
-				metadata[i].Domain = strings.TrimRight(metadata[i].Domain, ".")                        //Trim trailing period
-				metadata[i].Domain = strings.ReplaceAll(metadata[i].Domain, doubleSpaces, singleSpace) //Replace any double spaces that may have occurred as a result of removing characters
-			}
+		//handle Domain
+		if strings.Contains(metadata.Domain, elem) {
+			metadata.Domain = strings.ReplaceAll(metadata.Domain, elem, emptyString)
+			metadata.Domain = strings.TrimSpace(metadata.Domain)                             //Trim leading and trailing spaces
+			metadata.Domain = strings.TrimRight(metadata.Domain, ".")                        //Trim trailing period
+			metadata.Domain = strings.ReplaceAll(metadata.Domain, doubleSpaces, singleSpace) //Replace any double spaces that may have occurred as a result of removing characters
+		}
 
-			//handle Video Channel
-			if strings.Contains(metadata[i].Channel, elem) {
-				metadata[i].Channel = strings.ReplaceAll(metadata[i].Channel, elem, emptyString)
-				metadata[i].Channel = strings.TrimSpace(metadata[i].Channel)
-				metadata[i].Channel = strings.TrimRight(metadata[i].Channel, ".")
-				metadata[i].Channel = strings.ReplaceAll(metadata[i].Channel, doubleSpaces, singleSpace)
-			}
+		//handle Video Channel
+		if strings.Contains(metadata.Channel, elem) {
+			metadata.Channel = strings.ReplaceAll(metadata.Channel, elem, emptyString)
+			metadata.Channel = strings.TrimSpace(metadata.Channel)
+			metadata.Channel = strings.TrimRight(metadata.Channel, ".")
+			metadata.Channel = strings.ReplaceAll(metadata.Channel, doubleSpaces, singleSpace)
+		}
 
-			//handle Video Title
-			if strings.Contains(metadata[i].Title, elem) {
-				metadata[i].Title = strings.ReplaceAll(metadata[i].Title, elem, emptyString)
-				metadata[i].Title = strings.TrimSpace(metadata[i].Title)
-				metadata[i].Title = strings.TrimRight(metadata[i].Title, ".")
-				metadata[i].Title = strings.ReplaceAll(metadata[i].Title, doubleSpaces, singleSpace)
-			}
+		//handle Video Title
+		if strings.Contains(metadata.Title, elem) {
+			metadata.Title = strings.ReplaceAll(metadata.Title, elem, emptyString)
+			metadata.Title = strings.TrimSpace(metadata.Title)
+			metadata.Title = strings.TrimRight(metadata.Title, ".")
+			metadata.Title = strings.ReplaceAll(metadata.Title, doubleSpaces, singleSpace)
+		}
 
-			if strings.Contains(metadata[i].PlaylistTitle, elem) {
-				metadata[i].PlaylistTitle = strings.ReplaceAll(metadata[i].PlaylistTitle, elem, emptyString)
-				metadata[i].PlaylistTitle = strings.TrimSpace(metadata[i].PlaylistTitle)
-				metadata[i].PlaylistTitle = strings.TrimRight(metadata[i].PlaylistTitle, ".")
-				metadata[i].PlaylistTitle = strings.ReplaceAll(metadata[i].PlaylistTitle, doubleSpaces, singleSpace)
-			}
+		if strings.Contains(metadata.PlaylistTitle, elem) {
+			metadata.PlaylistTitle = strings.ReplaceAll(metadata.PlaylistTitle, elem, emptyString)
+			metadata.PlaylistTitle = strings.TrimSpace(metadata.PlaylistTitle)
+			metadata.PlaylistTitle = strings.TrimRight(metadata.PlaylistTitle, ".")
+			metadata.PlaylistTitle = strings.ReplaceAll(metadata.PlaylistTitle, doubleSpaces, singleSpace)
 		}
 	}
+	// }
 
 	return metadata
 }
@@ -213,36 +195,24 @@ func removeForbiddenCharsGeneric(input string) string {
 	return input
 }
 
-func getFilepaths(playlistId int, fPath e.Filepath, pathType int) string {
-	var fp string
-
-	if playlistId < 0 {
-		fp = GetVideoFilepath(fPath, pathType)
-	} else if playlistId > 0 {
-		fp = GetPlaylistFilepath(fPath, pathType)
-	}
-
+func getFilepaths(fPath e.Filepath, pathType int) string {
+	fp := GetVideoFilepath(fPath, pathType)
 	return fp
 }
 
-func cleanDirectoryStructureFields(mediaInfo []e.MediaInformation) []e.MediaInformation {
+func cleanDirectoryStructureFields(mediaInfo e.MediaInformation) e.MediaInformation {
 
-	for k := 0; k < len(mediaInfo); k++ {
-		mediaInfo[k].Domain = strings.TrimSpace(mediaInfo[k].Domain)
-		mediaInfo[k].Channel = strings.TrimSpace(mediaInfo[k].Channel)
-	}
+	// for k := 0; k < len(mediaInfo); k++ {
+	mediaInfo.Domain = strings.TrimSpace(mediaInfo.Domain)
+	mediaInfo.Channel = strings.TrimSpace(mediaInfo.Channel)
+	// }
 
 	return mediaInfo
 }
 
 // temporarily placed to only accept yt
-func checkContentDomain(meta []e.MediaInformation) bool {
-	for _, elem := range meta {
-		if strings.TrimSpace(elem.Domain) != "youtube.com" {
-			return false
-		}
-	}
-	return true
+func checkContentDomain(meta e.MediaInformation) bool {
+	return strings.TrimSpace(meta.Domain) == "youtube.com"
 }
 
 func urlTransforms(url string) string {

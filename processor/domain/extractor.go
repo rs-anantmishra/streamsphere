@@ -44,7 +44,6 @@ type MediaInformation struct {
 // helps unmarshalling unquoted true/false as bools in json
 type Bool bool
 
-// Is it needed?
 type SavedInfo struct {
 	VideoId        int
 	YoutubeVideoId string

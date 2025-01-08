@@ -259,7 +259,6 @@ func BuilderOptions() []CSwitch {
 			Playlist: Functions{Metadata: true, Download: false, Subtitle: false, Thumbnail: false},
 			Video:    Functions{Metadata: true, Download: false, Subtitle: false, Thumbnail: false}},
 		},
-		//Audio only file options to be added later
 	}
 
 	return defaults
@@ -325,10 +324,10 @@ func cmdBuilderMetadata(url string) (string, string, int) {
 }
 
 // Download Media Content
-func cmdBuilderDownload(url string, filenameInfo e.FilenameInfo) (string, string) {
+func cmdBuilderDownload(filenameInfo e.FilenameInfo) (string, string) {
 
 	var args []string
-	args = append(args, "\""+url+"\"")
+	args = append(args, "\""+filenameInfo.ContentId+"\"")
 
 	//this is to get rid of the problem with special chars that windows does not support
 	//while maintaining the directory structure and aethetics for fs access to your data
@@ -356,10 +355,10 @@ func cmdBuilderDownload(url string, filenameInfo e.FilenameInfo) (string, string
 	return arguments, cmd
 }
 
-func cmdBuilderSubtitles(url string, filenameInfo e.FilenameInfo) (string, string) {
+func cmdBuilderSubtitles(filenameInfo e.FilenameInfo) (string, string) {
 
 	var args []string
-	args = append(args, "\""+url+"\"")
+	args = append(args, "\""+filenameInfo.ContentId+"\"")
 
 	//this is to get rid of the problem with special chars that windows does not support
 	//while maintaining the directory structure and aethetics for fs access to your data
@@ -367,11 +366,13 @@ func cmdBuilderSubtitles(url string, filenameInfo e.FilenameInfo) (string, strin
 
 	bo := BuilderOptions()
 	for _, elem := range bo {
-		switch elem.Name {
-		case "OutputSubtitleFile":
-			args = append(args, subtitlesFilepath)
-		default:
-			args = append(args, elem.Value)
+		if elem.Group.Video.Subtitle {
+			switch elem.Name {
+			case "OutputSubtitleFile":
+				args = append(args, subtitlesFilepath)
+			default:
+				args = append(args, elem.Value)
+			}
 		}
 	}
 
@@ -476,13 +477,14 @@ func cmdBuilderGetPlaylistDetails(url string) (string, string, int) {
 func cmdBuilderFilenameInfo(url string) (string, string, int) {
 
 	//data-items count
-	itemsCount := 3
+	itemsCount := 4
 
 	var args []string
 	args = append(args, "\""+url+"\"")
 	args = append(args, Channel)
 	args = append(args, Title)
 	args = append(args, URLDomain)
+	args = append(args, ThumbnailURL)
 
 	arguments := strings.Join(args, Space)
 	cmdPath := c.Config("YTDLP_PATH", true)
