@@ -113,7 +113,6 @@ This update will support:
 
 ![Application Design](https://github.com/user-attachments/assets/7800f70f-f902-4cef-9c75-8e2664666cbe)
 
-
 ## ❓ Help & Support
 Please feel free to report any [bugs](https://github.com/users/rs-anantmishra/projects/5) that you may have observed!
 
