@@ -70,21 +70,32 @@ const InsertMediaFileCheck string = `SELECT Id From tblFiles WHERE FileType = ? 
 
 const GetNetworkVideoURLById string = `Select WebpageURL from tblVideos Where Id = ?`
 const GetVideoInformationById string = `Select V.Title, P.Title, C.Name as 'Channel', D.Domain, P.Title as 'PlaylistTitle', YoutubeVideoId, V.WebpageURL
-										FROM tblVideos V 
-										INNER JOIN tblChannels C ON C.Id = V.ChannelId 
-										INNER JOIN tblDomains D ON D.Id = V.DomainId
-										INNER JOIN tblPlaylistVideoFiles PVF ON PVF.VideoId = V.Id
-										INNER JOIN tblPlaylists P ON P.Id = PVF.PlaylistId
-										WHERE V.Id = ?;`
+FROM tblVideos V 
+INNER JOIN tblChannels C ON C.Id = V.ChannelId 
+INNER JOIN tblDomains D ON D.Id = V.DomainId
+INNER JOIN tblPlaylistVideoFiles PVF ON PVF.VideoId = V.Id
+INNER JOIN tblPlaylists P ON P.Id = PVF.PlaylistId
+WHERE V.Id = ?;`
 
 const UpdateVideoFileFields string = `UPDATE tblVideos SET IsFileDownloaded = ?, FileId = ? WHERE Id = ?;`
 const UpdatePVFFileId string = `UPDATE tblPlaylistVideoFiles SET FileId = ? WHERE VideoId = ?`
 
 //below may not be used
 const UpdatePVFThumbnailFileId string = `Select F.Id
-										 From tblFiles F
-										 INNER JOIN tblPlaylistVideoFiles PVF ON PVF.VideoId = F.VideoId
-										 WHERE PVF.PlaylistId = ? AND F.FileType = 'Thumbnail'
-										 AND F.VideoId = ?`
+From tblFiles F
+INNER JOIN tblPlaylistVideoFiles PVF ON PVF.VideoId = F.VideoId
+WHERE PVF.PlaylistId = ? AND F.FileType = 'Thumbnail'
+AND F.VideoId = ?`
 
 const GetVideoIdByContentId string = `SELECT Id, ChannelId FROM tblVideos WHERE YoutubeVideoId = ?;`
+
+//EPOCHTIME: SELECT CAST(strftime('%s', DATETIME()) as INT) as EpochTime
+const InsertRequestStatus string = `INSERT INTO tblRequestStatus SELECT NULL, ?, ?, ?, ?`
+const UpdateRequestStatusCheck string = `Select Id From tblRequestStatus WHERE RequestId = ?`
+const UpdateRequestStatus string = `UPDATE tblRequestStatus SET RequestStatus = ?, ModifiedDate = ? WHERE RequestStatusId = ?`
+
+const InsertRequestQueueCheck string = `Select Id From tblRequestQueue WHERE RequestId = ? AND ContentId = ?`
+const UpdateProcessStatus string = `UPDATE tblRequestQueue SET ProcessStatus = ?, ModifiedDate = ? WHERE Id = ?`
+const UpdateRetryCount string = `UPDATE tblRequestQueue SET RetryCount = ?, ModifiedDate = ? WHERE Id = ?`
+const UpdateMessage string = `UPDATE tblRequestQueue SET Message = ?, ModifiedDate = ? WHERE Id = ?`
+const UpdateCancelled string = `UPDATE tblRequestQueue SET Cancelled = ?, ModifiedDate = ? WHERE Id = ?`

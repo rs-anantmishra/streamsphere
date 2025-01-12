@@ -2,6 +2,7 @@ package extractor
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/rs-anantmishra/streamsphere/utils/processor/domain"
 	"github.com/rs-anantmishra/streamsphere/utils/processor/requests"
@@ -43,13 +44,21 @@ func (s *service) ProcessRequests() {
 	}
 
 	for i := range requests {
+
+		//Set Request to Analyzing
+		s.request.UpdateRequestStatus(requests[i].Id, domain.RequestStatus_Analyzing)
+
 		//Fetch Channel Playlists
 		plResult := s.download.GetChannelPlaylists(requests[i])
 
 		//Single Video
 		if len(plResult) == 1 && plResult[0].PlaylistChannelId == "" {
+			//QueueItem
+			queueItem := createRequestQueueItem(requests[i], plResult[0].YoutubePlaylistId)
+			queueItem.Id = s.request.InsertRequestQueue(queueItem)
+
 			//Execute Metadata and so on
-			processContent(s, domain.PlaylistContentMeta{ContentId: requests[i].RequestUrl, PlaylistContentIndex: 0}, domain.Playlist{Id: -1}, requests[i])
+			processContent(s, domain.PlaylistContentMeta{ContentId: requests[i].RequestUrl, PlaylistContentIndex: 0}, domain.Playlist{Id: -1}, requests[i], queueItem)
 		}
 		//Single Playlist
 		if plResult == nil {
@@ -61,15 +70,22 @@ func (s *service) ProcessRequests() {
 		if len(plResult) > 0 && plResult[0].PlaylistChannelId != "" {
 			processChannel(s, plResult, requests[i])
 		}
-	}
 
+		//Set Request to Complete
+		s.request.UpdateRequestStatus(requests[i].Id, domain.RequestStatus_Complete)
+	}
 }
 
-func processContent(s *service, content domain.PlaylistContentMeta, playlist domain.Playlist, request domain.RequestWithStatusId) bool {
+func processContent(s *service, content domain.PlaylistContentMeta, playlist domain.Playlist, request domain.Request, queueItem domain.RequestQueue) bool {
 
 	var contentMeta domain.SavedInfo
 	var domainCheck bool
+	result := true
+
 	if request.Metadata == 1 {
+		//update-queue-item
+		queueItem = updateQueueItemProcessStatus(s, queueItem, domain.ProcessStatus_ProcessMetadata)
+
 		metadata := s.download.ExtractMetadata(content)
 		if metadata.YoutubeVideoId != "" {
 			domainCheck = checkContentDomain(metadata) //temporary domain restriction
@@ -87,16 +103,25 @@ func processContent(s *service, content domain.PlaylistContentMeta, playlist dom
 		filenameInfo := getFilenameInfo(s, contentMeta, content, request)
 
 		if request.Thumbnail == 1 {
+			// update-queue-item
+			queueItem = updateQueueItemProcessStatus(s, queueItem, domain.ProcessStatus_ProcessThumbnail)
+
 			thumbnail := s.download.ExtractThumbnail(filenameInfo)
 			s.repository.SaveThumbnail(thumbnail)
 		}
 
 		if request.Subtitles == 1 {
+			// update-queue-item
+			queueItem = updateQueueItemProcessStatus(s, queueItem, domain.ProcessStatus_ProcessSubs)
+
 			subtitles := s.download.ExtractSubtitles(filenameInfo)
 			s.repository.SaveSubtitles(subtitles)
 		}
 
 		if request.Content == 1 {
+			// update-queue-item
+			queueItem = updateQueueItemProcessStatus(s, queueItem, domain.ProcessStatus_ProcessSubs)
+
 			//download file
 			state := s.download.ExtractMediaContent(filenameInfo)
 			_ = state
@@ -106,21 +131,30 @@ func processContent(s *service, content domain.PlaylistContentMeta, playlist dom
 			_ = dbResult
 		}
 	}
-	return true
 
+	// update-queue-item
+	queueItem = updateQueueItemProcessStatus(s, queueItem, domain.ProcessStatus_Complete)
+	_ = queueItem
+
+	return result
 }
 
-func processPlaylist(s *service, playlist domain.Playlist, contentResult domain.PlaylistContent, request domain.RequestWithStatusId) {
+func processPlaylist(s *service, playlist domain.Playlist, contentResult domain.PlaylistContent, request domain.Request) {
 
-	//call process content - tblPVF will be updated here.
+	//insert into tblRequestQueue
 	for i := range contentResult.Content {
 		playlist.ItemCount = len(contentResult.Content)
-		result := processContent(s, contentResult.Content[i], playlist, request)
+
+		//QueueItem
+		queueItem := createRequestQueueItem(request, contentResult.Content[i].ContentId)
+		queueItem.Id = s.request.InsertRequestQueue(queueItem)
+
+		result := processContent(s, contentResult.Content[i], playlist, request, queueItem)
 		fmt.Println(result)
 	}
 }
 
-func processChannel(s *service, plResult []domain.Playlist, request domain.RequestWithStatusId) {
+func processChannel(s *service, plResult []domain.Playlist, request domain.Request) {
 	//handle playlists in channel
 	for k := range plResult {
 		playlistContentInfo := domain.PlaylistContent{PlaylistId: plResult[k].YoutubePlaylistId, Content: []domain.PlaylistContentMeta{}}
@@ -134,7 +168,7 @@ func processChannel(s *service, plResult []domain.Playlist, request domain.Reque
 
 //region [helper methods]
 
-func getPlaylistResult(s *service, request domain.RequestWithStatusId) ([]domain.Playlist, domain.PlaylistContent) {
+func getPlaylistResult(s *service, request domain.Request) ([]domain.Playlist, domain.PlaylistContent) {
 	playlistContentInfo := domain.PlaylistContent{PlaylistId: request.RequestUrl, Content: []domain.PlaylistContentMeta{}}
 	contentResult := s.download.GetPlaylistContents(playlistContentInfo)
 
@@ -175,7 +209,7 @@ func mapPlaylistMetadata(playlist domain.Playlist, metadata domain.MediaInformat
 	return metadata
 }
 
-func getFilenameInfo(s *service, contentMeta domain.SavedInfo, content domain.PlaylistContentMeta, request domain.RequestWithStatusId) domain.FilenameInfo {
+func getFilenameInfo(s *service, contentMeta domain.SavedInfo, content domain.PlaylistContentMeta, request domain.Request) domain.FilenameInfo {
 	var filenameInfo domain.FilenameInfo
 	if request.Metadata == 0 {
 		filenameInfo = s.download.ExtractFilenameInfo(content.ContentId)
@@ -192,6 +226,34 @@ func getFilenameInfo(s *service, contentMeta domain.SavedInfo, content domain.Pl
 		}
 	}
 	return filenameInfo
+}
+
+func createRequestQueueItem(req domain.Request, contentId string) domain.RequestQueue {
+	var queueItem domain.RequestQueue
+	var requestType string
+	if req.Scheduled == 0 {
+		requestType = "scheduled"
+	} else if req.Scheduled == 1 {
+		requestType = "api"
+	}
+
+	queueItem.RequestId = req.Id
+	queueItem.ContentId = contentId
+	queueItem.ProcessStatus = domain.ProcessStatus_Queued
+	queueItem.RetryCount = 0
+	queueItem.Message = ""
+	queueItem.Cancelled = false
+	queueItem.RequestType = requestType
+	queueItem.CreatedDate = time.Now().Unix()
+	queueItem.ModifiedDate = time.Now().Unix()
+
+	return queueItem
+}
+
+func updateQueueItemProcessStatus(s *service, queueItem domain.RequestQueue, processStatus string) domain.RequestQueue {
+	queueItem.ProcessStatus = processStatus
+	s.request.UpdateRequestQueue(queueItem.Id, "ProcessStatus", queueItem.ProcessStatus)
+	return queueItem
 }
 
 //endregion

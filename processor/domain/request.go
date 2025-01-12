@@ -41,49 +41,29 @@ const RequestStatus_Failed string = `Failed`                   //completed statu
 type RequestQueue struct {
 	Id            int
 	RequestId     int
-	ContentId     string //yt videoId
+	ContentId     string
 	ProcessStatus string
 	RetryCount    int
 	Message       string
 	Cancelled     Bool
-	CreatedDate   int
-	ModifiedDate  int
+	RequestType   string
+	CreatedDate   int64
+	ModifiedDate  int64
 }
 
-const ProcessStatus_Queued string = `Queued`                      // Item is queued for processing
-const ProcessStatus_Started string = `Started`                    // Picked up and started for processing
-const ProcessStatus_ProcessMetadata string = `Process.Metadata`   // Downloading Metadata
-const ProcessStatus_ProcessThumbnail string = `Process.Thumbnail` // Downloading Thumbnail
-const ProcessStatus_ProcessContent string = `Process.Content`     // Downloading Content
-const ProcessStatus_ProcessSubs string = `Process.Subtitles`      // Downloading Subtitles
-const ProcessStatus_Complete string = `Complete`                  // Completed
-const ProcessStatus_Failed string = `Failed`                      // Completed Status - Failed due to some reason
+const ProcessStatus_Queued string = `Queued`                          // Item is queued for processing
+const ProcessStatus_ProcessMetadata string = `Downloading Metadata`   // Downloading Metadata
+const ProcessStatus_ProcessThumbnail string = `Downloading Thumbnail` // Downloading Thumbnail
+const ProcessStatus_ProcessContent string = `Downloading Content`     // Downloading Content
+const ProcessStatus_ProcessSubs string = `Downloading Subtitles`      // Downloading Subtitles
+const ProcessStatus_Complete string = `Complete`                      // Completed
+const ProcessStatus_Failed string = `Failed`                          // Completed Status - Failed due to some reason
 
 //-- Message --//
 const Message_Success string = `Completed Successfully` // Success Message
 const Message_Failed string = ``                        // Get Failure reason
 //-- Message --//
 
-//-- complex types below --//
-type RequestWithStatusId struct {
-	RequestStatusId   int
-	Id                int
-	RequestUrl        string
-	RequestType       string
-	Metadata          int
-	Thumbnail         int
-	Content           int
-	ContentFormat     string // will be used for video format
-	Subtitles         int
-	SubtitlesLanguage string //default
-	IsProxied         int
-	Proxy             string
-	Scheduled         int //Schedule this request?
-	CreatedDate       int
-	ModifiedDate      int
-}
-
-//-- Request Expansion --//
 //-- Populates tblPlaylists --//
 type ChannelPlaylists struct {
 	ChannelId string
@@ -114,6 +94,18 @@ type FilenameInfo struct {
 	Channel      string `json:"channel"`
 	Title        string `json:"title"`
 	ThumbnailUrl string `json:"thumbnail"`
+}
+
+type Process struct {
+	Id          int
+	ProcessId   int //(pid for extractor, populated by API)
+	RequestId   int //(Current RequestId that is being processed)
+	Status      int //(boolean)[0 - Stopped, 1 - Processing]
+	StartTime   int
+	EndTime     int
+	ProcessType string //(api-request-process/scheduled-request-process)
+	Message     string //(If Panic is there, recover and log, if same repeats, log and exit)
+	CreatedDate int
 }
 
 //1. Get all playlists for channel, then -

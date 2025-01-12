@@ -227,6 +227,7 @@ CREATE TABLE IF NOT EXISTS tblRequestQueue(
 	RetryCount INTEGER, --(Manual retries only)
 	Message TEXT, --(store failure reason or 'completed successfully')
 	Cancelled INTEGER, --(Soft delete if you want to cancel queued download)    
+    RequestType TEXT, -- (api-request/scheduled-request)
 	CreatedDate INTEGER,
 	ModifiedDate INTEGER
 );
@@ -239,6 +240,7 @@ CREATE TABLE IF NOT EXISTS tblProcess(
 	Status INTEGER, --(boolean)[0 - Stopped, 1 - Processing]
 	StartTime INTEGER,
 	EndTime INTEGER,
+	ProcessType TEXT, -- (api-request-process/scheduled-request-process)
 	Message TEXT, --(If Panic is there, recover and log, if repeats, log and exit)
 	CreatedDate INTEGER	
 );

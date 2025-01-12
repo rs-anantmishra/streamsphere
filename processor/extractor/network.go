@@ -21,7 +21,7 @@ type IDownload interface {
 	ExtractThumbnail(lstSavedInfo e.FilenameInfo) e.Files
 	GetDownloadedMediaFileInfo(smi e.SavedInfo, fp e.FilenameInfo) e.Files
 	// Cleanup()
-	GetChannelPlaylists(request domain.RequestWithStatusId) []domain.Playlist
+	GetChannelPlaylists(request domain.Request) []domain.Playlist
 	GetPlaylistContents(request domain.PlaylistContent) domain.PlaylistContent
 	GetPlaylistUploader(playlistUrl string) domain.PlaylistUploader
 	ExtractFilenameInfo(contentId string) e.FilenameInfo
@@ -48,7 +48,7 @@ func NewDownload() IDownload {
 // 	d.lstDownloads = updated
 // }
 
-func (d *download) GetChannelPlaylists(request domain.RequestWithStatusId) []domain.Playlist {
+func (d *download) GetChannelPlaylists(request domain.Request) []domain.Playlist {
 
 	args, command, itemsCount := cmdBuilderChannelPlaylists(request.RequestUrl)
 	logCommand := command + Space + args
