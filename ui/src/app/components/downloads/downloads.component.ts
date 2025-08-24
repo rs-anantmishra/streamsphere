@@ -112,7 +112,7 @@ export class DownloadsComponent implements OnInit {
 
         this.sock.subscribe({
             next: msg => { this.updateLogs(JSON.stringify(msg)); /* console.log(JSON.stringify(msg)) */ },
-            error: err => { this.updateLogs('{"download": "web-socket connection is closed."}'); console.log('err:', err) },
+            error: err => { this.updateLogs('{"download": "web-socket connection is closed."}'); /* console.log('err:', err) */ },
             complete: () => { this.wsCloseWithDownloadComplete() }
         });
         //this.sock.complete();
