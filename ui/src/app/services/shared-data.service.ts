@@ -1,6 +1,7 @@
 import { Injectable, WritableSignal, signal } from '@angular/core';
 import { VideoData } from '../classes/video-data';
 import { PlaylistsDataResponse, PlaylistsInfo, SelectedPlaylist } from '../classes/playlists';
+import { CardGroup, CardGroupDataResponse, SelectedCardGroup } from '../classes/cards';
 import { BehaviorSubject, Observable, Subject, Subscription } from 'rxjs';
 
 @Injectable({
@@ -156,6 +157,12 @@ export class SharedDataService {
 
     setPlaylist(value: SelectedPlaylist) {
         localStorage.setItem('playlist', JSON.stringify(value));
+    }
+
+    setGroup(value: SelectedCardGroup, groupType: string) {
+        if (groupType === 'channel') {
+            localStorage.setItem('channel', JSON.stringify(value));
+        }
     }
 
     getPlaylist(): SelectedPlaylist {
