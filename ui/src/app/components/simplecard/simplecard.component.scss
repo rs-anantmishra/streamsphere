@@ -34,7 +34,7 @@ p-card {
 
 .details {
     text-overflow: ellipsis;
-    overflow: hidden;
+    // overflow: hidden;
     white-space: nowrap;
     display: block;
 }
@@ -64,7 +64,7 @@ p-card {
 .zoom-img:hover {
     overflow: hidden;
     border-radius: 6px;
-    box-shadow: #0099FF 0px 20px 30px -5px;
+    box-shadow: #0099FF 0px 25px 70px -5px;
 }
 
 .zoom-img img {
@@ -101,7 +101,7 @@ p-card {
 
 .channel-style {
     font-style: italic;
-    color: #0099FF;
+    color: #999;
 }
 
 /*
@@ -112,4 +112,5 @@ p-card {
 #9900FF - 153, 0, 255 - PurpleViolet
 #0099FF - 0, 153, 255 - BlueCyan
 #00FF99 - 0, 255, 153 - Sea Green
+#55FF4D - Kawasaki Lime Green
 */
