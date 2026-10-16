@@ -28,11 +28,10 @@ import Plyr from 'plyr';
 
 @Component({
     selector: 'app-playlist-details',
-    standalone: true,
     imports: [CommonModule, RouterModule, ButtonModule, PanelModule, ScrollPanelModule, TagModule, ConfirmPopupModule, ToastModule,
         ChipModule, MinifiedViewCount, MinifiedLikeCount, CommaSepStringFromArray, FormattedResolutionPipe,
         MinifiedDatePipe, FieldsetModule, FilesizeConversionPipe, ProgressSpinnerModule, LinkifyPipe],
-    providers: [Router,  ConfirmationService, MessageService, UrlEncode],
+    providers: [Router, ConfirmationService, MessageService, UrlEncode],
     templateUrl: './playlist-details.component.html',
     styleUrl: './playlist-details.component.scss'
 })

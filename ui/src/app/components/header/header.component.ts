@@ -17,7 +17,6 @@ import { VideoData, VideoDataResponse } from '../../classes/video-data';
 
 @Component({
     selector: 'app-header',
-    standalone: true,
     imports: [InputSwitchModule, CommonModule, ButtonModule, SplitButtonModule, ToastModule, FormsModule, AutoCompleteModule],
     providers: [MessageService, Router, VideosService],
     templateUrl: './header.component.html',

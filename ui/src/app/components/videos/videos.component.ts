@@ -5,7 +5,6 @@ import { ScrollPanelModule } from 'primeng/scrollpanel';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { SimplecardComponent } from "../simplecard/simplecard.component";
 import { Router, RouterModule } from '@angular/router'
-import { PlaylistCardComponent } from '../playlist-card/playlist-card.component'
 
 //services
 import { SharedDataService } from '../../services/shared-data.service'
@@ -15,8 +14,7 @@ import { Subscription } from 'rxjs';
 
 @Component({
     selector: 'app-videos',
-    standalone: true,
-    imports: [SimplecardComponent, CommonModule, PaginatorModule, ButtonModule, ScrollPanelModule, RouterModule, ProgressSpinnerModule, PlaylistCardComponent],
+    imports: [SimplecardComponent, CommonModule, PaginatorModule, ButtonModule, ScrollPanelModule, RouterModule, ProgressSpinnerModule],
     providers: [Router, SharedDataService],
     templateUrl: './videos.component.html',
     styleUrl: './videos.component.scss'

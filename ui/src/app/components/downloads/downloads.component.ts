@@ -44,7 +44,6 @@ interface ExtractionOptions {
 
 @Component({
     selector: 'app-downloads',
-    standalone: true,
     imports: [ToastModule, ProgressBarModule, FieldsetModule, ProgressSpinnerModule, SidebarModule, CardModule, FormsModule,
         InputGroupModule, InputGroupAddonModule, InputTextModule, ButtonModule, CommonModule, CheckboxModule, PanelModule,
         SimplecardComponent, RemovePrefixPipe, ScrollPanelModule, DividerModule, OverlayPanelModule, FilesizeConversionPipe],

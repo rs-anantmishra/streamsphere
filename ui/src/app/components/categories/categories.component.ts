@@ -8,7 +8,6 @@ import { Subscription } from 'rxjs';
 
 @Component({
     selector: 'app-categories',
-    standalone: true,
     imports: [CommonModule, RouterModule, ButtonModule],
     providers: [Router, SharedDataService],
     templateUrl: './categories.component.html',
