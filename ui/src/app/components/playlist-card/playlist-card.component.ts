@@ -3,7 +3,6 @@ import { PlaylistsDataResponse, PlaylistsInfo, SelectedPlaylist } from '../../cl
 import { CardModule } from 'primeng/card';
 import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
-import { CommonModule } from '@angular/common';
 import { SharedDataService } from '../../services/shared-data.service';
 import { UrlEncode } from '../../utilities/url-encode';
 import { Router } from '@angular/router';
@@ -11,7 +10,7 @@ import { Router } from '@angular/router';
 
 @Component({
     selector: 'app-playlist-card',
-    imports: [CardModule, TagModule, TooltipModule, CommonModule],
+    imports: [CardModule, TagModule, TooltipModule],
     providers: [UrlEncode],
     templateUrl: './playlist-card.component.html',
     styleUrl: './playlist-card.component.scss'

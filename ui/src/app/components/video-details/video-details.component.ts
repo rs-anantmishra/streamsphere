@@ -1,5 +1,4 @@
 import { Component, OnInit, ViewEncapsulation, ViewChild } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { SharedDataService } from '../../services/shared-data.service';
@@ -25,7 +24,7 @@ import { FilesizeConversionPipe } from "../../utilities/pipes/filesize-conversio
 
 @Component({
     selector: 'app-video-details',
-    imports: [CommonModule, RouterModule, ButtonModule, PanelModule, ScrollPanelModule, TagModule, ChipModule, ConfirmPopupModule, ToastModule,
+    imports: [RouterModule, ButtonModule, PanelModule, ScrollPanelModule, TagModule, ChipModule, ConfirmPopupModule, ToastModule,
         MinifiedViewCount, MinifiedLikeCount, CommaSepStringFromArray, FormattedResolutionPipe, MinifiedDatePipe, FieldsetModule, FilesizeConversionPipe],
     providers: [Router, SharedDataService, ConfirmationService, MessageService, UrlEncode],
     templateUrl: './video-details.component.html',

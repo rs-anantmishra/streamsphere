@@ -1,4 +1,3 @@
-import { CommonModule } from '@angular/common';
 import { Component, HostListener } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { MessageService } from 'primeng/api';
@@ -10,7 +9,7 @@ import { ScrollPanelModule } from 'primeng/scrollpanel';
 
 @Component({
     selector: 'app-root',
-    imports: [RouterOutlet, CommonModule, SplitButtonModule, ToastModule, HeaderComponent, ScrollPanelModule],
+    imports: [RouterOutlet, SplitButtonModule, ToastModule, HeaderComponent, ScrollPanelModule],
     templateUrl: './app.component.html',
     styleUrl: './app.component.scss',
     providers: [MessageService]
