@@ -1,6 +1,7 @@
 import { CommonModule, DOCUMENT } from '@angular/common';
 import { HostListener, Component, OnInit, inject, OnDestroy } from '@angular/core';
 import { MenuItem, MessageService } from 'primeng/api';
+import { ButtonModule } from 'primeng/button';
 import { SplitButtonModule } from 'primeng/splitbutton';
 import { ToastModule } from 'primeng/toast';
 import { FilterService, SelectItemGroup } from 'primeng/api';
@@ -17,7 +18,7 @@ import { VideoData, VideoDataResponse } from '../../classes/video-data';
 @Component({
     selector: 'app-header',
     standalone: true,
-    imports: [InputSwitchModule, CommonModule, SplitButtonModule, ToastModule, FormsModule, AutoCompleteModule],
+    imports: [InputSwitchModule, CommonModule, ButtonModule, SplitButtonModule, ToastModule, FormsModule, AutoCompleteModule],
     providers: [MessageService, Router, VideosService],
     templateUrl: './header.component.html',
     styleUrl: './header.component.scss'
@@ -34,10 +35,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
     themeIcon = ''
     activeIcon = '#dark'
     toggleTheme() {
-        const linkElement = this.#document.getElementById('app-theme',) as HTMLLinkElement;
-        const bodyElement = this.#document.getElementById('app-dlbg',) as HTMLBodyElement;
-
-        if (linkElement.href.includes('light')) {
+        if (!this.#document.documentElement.classList.contains('app-dark')) {
             this.setDarkMode();
         } else {
             this.setLightMode();
@@ -45,20 +43,18 @@ export class HeaderComponent implements OnInit, OnDestroy {
     }
 
     setLightMode() {
-        const linkElement = this.#document.getElementById('app-theme',) as HTMLLinkElement;
         const bodyElement = this.#document.getElementById('app-dlbg',) as HTMLBodyElement;
 
-        linkElement.href = 'themes/aura-light-blue/theme.css';
+        this.#document.documentElement.classList.remove('app-dark');
         bodyElement.className = "downloads-bg-light"
         this.activeIcon = '#dark'
         this.sharedDataSvc.setIsDarkMode(false)
     }
 
     setDarkMode() {
-        const linkElement = this.#document.getElementById('app-theme',) as HTMLLinkElement;
         const bodyElement = this.#document.getElementById('app-dlbg',) as HTMLBodyElement;
 
-        linkElement.href = 'themes/aura-dark-blue/theme.css';
+        this.#document.documentElement.classList.add('app-dark');
         bodyElement.className = "downloads-bg-dark"
         this.activeIcon = '#light'
         this.sharedDataSvc.setIsDarkMode(true)
