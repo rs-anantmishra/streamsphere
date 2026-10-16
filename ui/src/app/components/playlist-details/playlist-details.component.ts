@@ -156,11 +156,11 @@ export class PlaylistDetailsComponent implements OnInit {
     }
 
     accept() {
-        this.confirmPopup.accept();
+        this.confirmPopup.onAccept();
     }
 
     reject() {
-        this.confirmPopup.reject();
+        this.confirmPopup.onReject();
     }
 
     confirm(event: Event, contentId: number) {

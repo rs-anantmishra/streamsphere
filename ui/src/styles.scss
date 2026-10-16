@@ -1,10 +1,29 @@
 /* You can add global styles to this file, and also import other style files */
 
-//@import "primeng/resources/themes/aura-light-blue/theme.css";
-//@import "primeng/resources/themes/aura-dark-blue/theme.css";
-@import "primeng/resources/primeng.css";
 @import "primeflex/primeflex.scss";
 @import "primeicons/primeicons.css";
+
+// Base font previously supplied by the PrimeNG 17 theme.css
+@font-face {
+    font-family: "Inter var";
+    font-weight: 100 900;
+    font-display: swap;
+    font-style: normal;
+    src: url("/fonts/Inter-roman.var.woff2?v=3.19") format("woff2");
+}
+
+@font-face {
+    font-family: "Inter var";
+    font-weight: 100 900;
+    font-display: swap;
+    font-style: italic;
+    src: url("/fonts/Inter-italic.var.woff2?v=3.19") format("woff2");
+}
+
+:root {
+    font-family: "Inter var", sans-serif;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+}
 
 @import url('https://fonts.googleapis.com/css2?family=Nothing+You+Could+Do&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Edu+AU+VIC+WA+NT+Hand:wght@400..700&display=swap');
