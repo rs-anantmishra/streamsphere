@@ -48,7 +48,7 @@
 <p-toast />
 
 <div>
-    <p-sidebar [(visible)]="sidebarVisible" styleClass="queued-box">
+    <p-drawer [(visible)]="sidebarVisible" styleClass="queued-box">
         <p-scrollPanel class="queued-scrollable" [style]="{ width: '100%', height: 'calc(100vh - 150px)' }">
             <h2 class="queued-heading">Queued Downloads</h2>
             <div *ngIf="this.queuedItems !== null && this.queuedItems.length > 0; else elseBlock">
@@ -59,7 +59,7 @@
                 <app-simplecard class="sidebar-cards" [metadata]="nilMetadata"></app-simplecard>
             </ng-template>
         </p-scrollPanel>
-    </p-sidebar>
+    </p-drawer>
 </div>
 
 <div class="footer">
@@ -67,7 +67,7 @@
         <div class="help-info">
             <p-button (onClick)="info.toggle($event)" icon="pi pi-info-circle" label="" severity="secondary"
                 size="small" />
-            <p-overlayPanel #info>
+            <p-popover #info>
                 <h3 style="font-size: 16px;">Shortcuts</h3>
                 <div class="footer-help">
                     <p-divider />
@@ -81,18 +81,18 @@
                     <p-divider />
                     <span class="shortcut-keys">Alt + Shift + L</span> -> Logs -->
                 </div>
-            </p-overlayPanel>
+            </p-popover>
         </div>
         <div class="storage-info">
             <p-button (onClick)="storage.toggle($event); this.getStorageStatus();" icon="pi pi-server"
                 label="Storage Information" severity="secondary" size="small" />
-            <p-overlayPanel #storage>
+            <p-popover #storage>
                 <div class="storage-data">
                     <span><i class="pi pi-database"></i> Storage Used: {{fsStorageStatus | filesizeToMiB}}</span>
                     <p-divider />
                     <span><i class="pi pi-file"></i> Storage Used: {{dbStorageStatus | filesizeToMiB}}</span>
                 </div>
-            </p-overlayPanel>
+            </p-popover>
         </div>
     </div>
     <div>

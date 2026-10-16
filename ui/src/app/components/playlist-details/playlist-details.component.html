@@ -116,7 +116,7 @@
                         <!-- delete -->
                         <div>
                             <p-toast />
-                            <p-confirmPopup #confirmPopupRef>
+                            <p-confirmpopup #confirmPopupRef>
                                 <ng-template pTemplate="headless" let-message let-test>
                                     <div class="border-round p-3">
                                         <span>{{ message.message }}</span>
@@ -127,7 +127,7 @@
                                         </div>
                                     </div>
                                 </ng-template>
-                            </p-confirmPopup>
+                            </p-confirmpopup>
                         </div>
                         <p-button icon="pi pi-trash" (onClick)="confirm($event, this.selectedVideo.video_id)" [style]="{'margin': '2px'}"
                             size="small" outlined="true" severity="danger" [style]="{'margin-right': '8px'}" label="" />

@@ -1,5 +1,5 @@
-import { CommonModule, DOCUMENT } from '@angular/common';
-import { HostListener, Component, OnInit, inject, OnDestroy } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { HostListener, Component, OnInit, inject, OnDestroy, DOCUMENT } from '@angular/core';
 import { MenuItem, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { SplitButtonModule } from 'primeng/splitbutton';
@@ -8,7 +8,6 @@ import { FilterService, SelectItemGroup } from 'primeng/api';
 import { AutoCompleteCompleteEvent, AutoCompleteModule } from 'primeng/autocomplete';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { InputSwitchModule } from 'primeng/inputswitch';
 import { SharedDataService } from '../../services/shared-data.service';
 import { VideosService } from '../../services/videos.service';
 import { ContentSearchResponse, ContentSearch } from '../../classes/search';
@@ -17,7 +16,7 @@ import { VideoData, VideoDataResponse } from '../../classes/video-data';
 
 @Component({
     selector: 'app-header',
-    imports: [InputSwitchModule, CommonModule, ButtonModule, SplitButtonModule, ToastModule, FormsModule, AutoCompleteModule],
+    imports: [CommonModule, ButtonModule, SplitButtonModule, ToastModule, FormsModule, AutoCompleteModule],
     providers: [MessageService, Router, VideosService],
     templateUrl: './header.component.html',
     styleUrl: './header.component.scss'
