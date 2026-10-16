@@ -1,4 +1,3 @@
-import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { Router, RouterModule, RouterOutlet } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
@@ -8,7 +7,7 @@ import { Subscription } from 'rxjs';
 
 @Component({
     selector: 'app-categories',
-    imports: [CommonModule, RouterModule, ButtonModule],
+    imports: [RouterModule, ButtonModule],
     providers: [Router, SharedDataService],
     templateUrl: './categories.component.html',
     styleUrl: './categories.component.scss'

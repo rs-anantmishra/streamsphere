@@ -3,7 +3,6 @@ import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 import { VideoData } from '../../classes/video-data'
 import { CardModule } from 'primeng/card';
-import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { SharedDataService } from '../../services/shared-data.service';
 import { TooltipModule } from 'primeng/tooltip';
@@ -17,7 +16,7 @@ import { UrlEncode } from '../../utilities/url-encode';
 
 @Component({
     selector: 'app-simplecard',
-    imports: [ToastModule, CardModule, CommonModule, TooltipModule, TagModule, FilesizeConversionPipe, CommaSepStringFromArray, MinifiedViewCount, MinifiedDatePipe, FormattedResolutionPipe],
+    imports: [ToastModule, CardModule, TooltipModule, TagModule, FilesizeConversionPipe, CommaSepStringFromArray, MinifiedViewCount, MinifiedDatePipe, FormattedResolutionPipe],
     providers: [MessageService, Router, UrlEncode],
     templateUrl: './simplecard.component.html',
     styleUrl: './simplecard.component.scss'
