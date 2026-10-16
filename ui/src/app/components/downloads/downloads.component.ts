@@ -9,7 +9,7 @@ import { CommonModule } from '@angular/common';
 import { CheckboxModule } from 'primeng/checkbox';
 import { PanelModule } from 'primeng/panel';
 import { CardModule } from 'primeng/card';
-import { SidebarModule } from 'primeng/sidebar';
+import { DrawerModule } from 'primeng/drawer';
 import { ScrollPanelModule } from 'primeng/scrollpanel';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
@@ -17,7 +17,7 @@ import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 import { FieldsetModule } from 'primeng/fieldset';
 import { DividerModule } from 'primeng/divider';
-import { OverlayPanelModule } from 'primeng/overlaypanel';
+import { PopoverModule } from 'primeng/popover';
 import { webSocket } from 'rxjs/webSocket'
 import { environment } from '../../../environments/environment';
 import { UrlEncode } from '../../utilities/url-encode';
@@ -44,9 +44,9 @@ interface ExtractionOptions {
 
 @Component({
     selector: 'app-downloads',
-    imports: [ToastModule, ProgressBarModule, FieldsetModule, ProgressSpinnerModule, SidebarModule, CardModule, FormsModule,
+    imports: [ToastModule, ProgressBarModule, FieldsetModule, ProgressSpinnerModule, DrawerModule, CardModule, FormsModule,
         InputGroupModule, InputGroupAddonModule, InputTextModule, ButtonModule, CommonModule, CheckboxModule, PanelModule,
-        SimplecardComponent, RemovePrefixPipe, ScrollPanelModule, DividerModule, OverlayPanelModule, FilesizeConversionPipe],
+        SimplecardComponent, RemovePrefixPipe, ScrollPanelModule, DividerModule, PopoverModule, FilesizeConversionPipe],
     providers: [DownloadService, MessageService, Messages, FilesService, UrlEncode],
     templateUrl: './downloads.component.html',
     styleUrl: './downloads.component.scss'
