@@ -9,12 +9,11 @@ import { ScrollPanelModule } from 'primeng/scrollpanel';
 
 
 @Component({
-  selector: 'app-root',
-  standalone: true,
-  imports: [RouterOutlet, CommonModule, SplitButtonModule, ToastModule, HeaderComponent, ScrollPanelModule],
-  templateUrl: './app.component.html',
-  styleUrl: './app.component.scss',
-  providers: [MessageService]
+    selector: 'app-root',
+    imports: [RouterOutlet, CommonModule, SplitButtonModule, ToastModule, HeaderComponent, ScrollPanelModule],
+    templateUrl: './app.component.html',
+    styleUrl: './app.component.scss',
+    providers: [MessageService]
 })
 export class AppComponent {
 

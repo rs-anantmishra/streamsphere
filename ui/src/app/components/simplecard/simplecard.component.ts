@@ -17,7 +17,6 @@ import { UrlEncode } from '../../utilities/url-encode';
 
 @Component({
     selector: 'app-simplecard',
-    standalone: true,
     imports: [ToastModule, CardModule, CommonModule, TooltipModule, TagModule, FilesizeConversionPipe, CommaSepStringFromArray, MinifiedViewCount, MinifiedDatePipe, FormattedResolutionPipe],
     providers: [MessageService, Router, UrlEncode],
     templateUrl: './simplecard.component.html',

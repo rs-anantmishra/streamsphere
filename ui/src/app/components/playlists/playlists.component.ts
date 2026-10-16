@@ -20,7 +20,6 @@ interface PageEvent {
 
 @Component({
     selector: 'app-playlists',
-    standalone: true,
     imports: [CommonModule, PaginatorModule, RouterModule, ButtonModule, ProgressSpinnerModule, ScrollPanelModule, PlaylistCardComponent],
     providers: [Router, SharedDataService],
     templateUrl: './playlists.component.html',

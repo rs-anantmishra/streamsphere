@@ -10,12 +10,11 @@ import { Router } from '@angular/router';
 
 
 @Component({
-  selector: 'app-playlist-card',
-  standalone: true,
-  imports: [CardModule, TagModule, TooltipModule, CommonModule],
-  providers: [UrlEncode],
-  templateUrl: './playlist-card.component.html',
-  styleUrl: './playlist-card.component.scss'
+    selector: 'app-playlist-card',
+    imports: [CardModule, TagModule, TooltipModule, CommonModule],
+    providers: [UrlEncode],
+    templateUrl: './playlist-card.component.html',
+    styleUrl: './playlist-card.component.scss'
 })
 export class PlaylistCardComponent implements OnInit {
     @Input() playlist: PlaylistsInfo = new PlaylistsInfo();

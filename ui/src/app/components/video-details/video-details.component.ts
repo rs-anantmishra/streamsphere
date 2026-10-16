@@ -25,7 +25,6 @@ import { FilesizeConversionPipe } from "../../utilities/pipes/filesize-conversio
 
 @Component({
     selector: 'app-video-details',
-    standalone: true,
     imports: [CommonModule, RouterModule, ButtonModule, PanelModule, ScrollPanelModule, TagModule, ChipModule, ConfirmPopupModule, ToastModule,
         MinifiedViewCount, MinifiedLikeCount, CommaSepStringFromArray, FormattedResolutionPipe, MinifiedDatePipe, FieldsetModule, FilesizeConversionPipe],
     providers: [Router, SharedDataService, ConfirmationService, MessageService, UrlEncode],
