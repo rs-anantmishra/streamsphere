@@ -183,6 +183,11 @@ func DownloadStatus(c *websocket.Conn) {
 			}
 		}
 	}()
+	// Stop the reader before returning: fasthttp recycles the connection and its buffers once the handler ends.
+	defer func() {
+		_ = ws.SetReadDeadline(time.Now())
+		<-done
+	}()
 	ticker := time.NewTicker(time.Second)
 	defer ticker.Stop()
 
