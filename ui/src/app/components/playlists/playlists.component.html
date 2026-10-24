@@ -5,7 +5,7 @@
                 <p-scrollPanel [style]="{ width: '100%', height: 'calc(100vh - 150px)' }">
                     <div class="element">
                         <div class="box">
-                            @for (playlist of this.lstPlaylists; track playlist) {
+                            @for (playlist of this.lstPlaylists; track playlist.playlist_id) {
                                 <div>
                                     <app-playlist-card [playlist]="playlist"></app-playlist-card>
                                 </div>
