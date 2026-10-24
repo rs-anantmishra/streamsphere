@@ -168,6 +168,7 @@ func downloadState(item g.DownloadStatus) string {
 // once per second; idle heartbeats are sent at most every 5 seconds.
 func DownloadStatus(c *websocket.Conn) {
 	const idleInterval = 5 * time.Second
+	const writeTimeout = 5 * time.Second
 	activeItem := g.NewActiveItem()
 	var lastIdle time.Time
 
@@ -202,6 +203,8 @@ func DownloadStatus(c *websocket.Conn) {
 			if e != nil {
 				log.Info(e)
 			}
+			// A client that vanished without closing must fail the write instead of lingering in the OS buffer.
+			_ = ws.SetWriteDeadline(time.Now().Add(writeTimeout))
 			if err := c.WriteMessage(websocket.TextMessage, jsonData); err != nil {
 				log.Info("write:", err)
 				break
