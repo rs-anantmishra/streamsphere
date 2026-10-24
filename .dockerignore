@@ -2,3 +2,10 @@ ui/node_modules/**
 ui/dist/**
 .git
 .gitignore
+content/**
+.claude
+.agents
+.remember
+graphify-out
+ui/src/graphify-out
+database/db/*.db
