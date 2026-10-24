@@ -131,6 +131,23 @@ func NetworkIngestMedia(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(result)
 }
 
+// downloadStatusResponse builds the status message; an idle item carries no details of the last download.
+func downloadStatusResponse(item g.DownloadStatus) res.DownloadStatusResponse {
+	state := downloadState(item)
+	if state == "idle" {
+		return res.DownloadStatusResponse{State: state}
+	}
+	return res.DownloadStatusResponse{
+		Message:   item.StatusMessage,
+		VideoURL:  item.VideoURL,
+		State:     state,
+		VideoId:   item.VideoId,
+		Title:     item.Title,
+		Channel:   item.Channel,
+		Thumbnail: item.Thumbnail,
+	}
+}
+
 // downloadState maps the active item's status message to a wire-format state.
 func downloadState(item g.DownloadStatus) string {
 	switch {
@@ -170,20 +187,9 @@ func DownloadStatus(c *websocket.Conn) {
 	defer ticker.Stop()
 
 	for {
-		var dsr res.DownloadStatusResponse
+		dsr := res.DownloadStatusResponse{State: "idle"}
 		if len(activeItem) > 0 {
-			item := activeItem[0]
-			dsr = res.DownloadStatusResponse{
-				Message:   item.StatusMessage,
-				VideoURL:  item.VideoURL,
-				State:     downloadState(item),
-				VideoId:   item.VideoId,
-				Title:     item.Title,
-				Channel:   item.Channel,
-				Thumbnail: item.Thumbnail,
-			}
-		} else {
-			dsr.State = "idle"
+			dsr = downloadStatusResponse(activeItem[0])
 		}
 
 		if dsr.State != "idle" || time.Since(lastIdle) >= idleInterval {
