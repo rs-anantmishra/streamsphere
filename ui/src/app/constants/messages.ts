@@ -3,9 +3,7 @@ export class Messages {
     Severities: string[] = ['Secondary', 'Success', 'Info', 'Warning', 'Help', 'Danger', 'Contrast']
 
     //literals
-    wsMessage: string = 'no active downloads'
     serverLogs: string = 'no logs available'
-    downloadComplete: string = 'Download completed successfully.'
     triggerDownloadApiSuccessResponse: string = 'Item added to download queue successfully.'
     downloadInfoIdentifier: string = '[download]'
     getInfo: string = 'fetching content metadata & thumbnail before downloading, this might take a while!'

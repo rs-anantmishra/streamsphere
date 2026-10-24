@@ -111,10 +111,13 @@ export class DownloadsComponent implements OnInit, OnDestroy {
         this.activeDLTitle = event.title || this.activeDLTitle
         this.activeDLChannel = event.channel || this.activeDLChannel
         this.activeDLImage = event.thumbnail || this.activeDLImage
-        this.serverLogs = event.download
+
+        //yt-dlp also reports warnings and blank lines while downloading - keep showing the last progress line
+        const isProgressLine = event.state !== 'downloading' || event.download.includes(this.msg.downloadInfoIdentifier)
+        if (isProgressLine) { this.serverLogs = event.download }
 
         if (event.state === 'downloading') {
-            this.downloadPercent = parseDownloadPercent(event.download)
+            if (isProgressLine) { this.downloadPercent = parseDownloadPercent(event.download) }
             //a retried or repeated download of the same video can complete or fail again
             this.completedIds.delete(event.video_id)
             this.failedIds.delete(event.video_id)
@@ -193,9 +196,6 @@ export class DownloadsComponent implements OnInit, OnDestroy {
                     this.activeDLChannel = metadata[0].channel
                     this.activeDLImage = metadata[0].thumbnail
                 }
-
-                //refresh autocomplete cache
-                this.sharedData.setRefreshAutoCompleteValue(true);
 
                 //Completion Process
                 this.GetMediaCompleteResult()

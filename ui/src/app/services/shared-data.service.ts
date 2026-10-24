@@ -8,7 +8,15 @@ import { BehaviorSubject, Observable, Subject, Subscription } from 'rxjs';
 })
 export class SharedDataService {
 
-    constructor() { }
+    constructor() {
+        //the download status is no longer kept in localStorage - clear what earlier versions left behind
+        try {
+            localStorage.removeItem('isDownloadActive')
+            localStorage.removeItem('activeDownloadMetadata')
+        } catch {
+            //storage can be unavailable (private mode) - nothing to clear then
+        }
+    }
     isDarkMode: boolean = false;
     lstVideos: VideoData[] = [];
     lstPlaylists: PlaylistsInfo[] = [];

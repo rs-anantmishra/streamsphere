@@ -57,6 +57,15 @@ describe('DownloadsComponent status events', () => {
         expect(component.downloadPercent).toBe(45.3);
     });
 
+    it('keeps the last progress line when a warning arrives while downloading', () => {
+        component.handleStatusEvent(statusEvent({ download: '[download]  45.3% of  229.20MiB at 19.19MiB/s ETA 00:10' }));
+        component.handleStatusEvent(statusEvent({ download: 'WARNING: [youtube] No supported JavaScript runtime could be found.' }));
+        component.handleStatusEvent(statusEvent({ download: '' }));
+
+        expect(component.serverLogs).toBe('[download]  45.3% of  229.20MiB at 19.19MiB/s ETA 00:10');
+        expect(component.downloadPercent).toBe(45.3);
+    });
+
     it('refreshes search once per completed video', () => {
         component.handleStatusEvent(statusEvent({ state: 'completed', video_id: 7, download: 'Download completed successfully.' }));
         component.handleStatusEvent(statusEvent({ state: 'completed', video_id: 7, download: 'Download completed successfully.' }));
@@ -146,6 +155,18 @@ describe('DownloadsComponent status events', () => {
         expect(messageService.add).toHaveBeenCalledWith(jasmine.objectContaining({ severity: 'error', detail: 'Enter a video or playlist URL' }));
         expect(component.loading).toBeFalse();
         expect(component.urlInputDisabled).toBeFalse();
+    });
+
+    it('does not refresh search when a download is only queued', async () => {
+        const svc = fixture.debugElement.injector.get(DownloadService) as any;
+        svc.getMetadata = jasmine.createSpy('getMetadata').and.resolveTo({ status: 'success', message: '', data: [{ title: 'T', channel: 'C', thumbnail: 'th.jpg' }] });
+        component.options.Identifier = 'abc';
+
+        await component.GetMedia();
+
+        expect(svc.getMetadata).toHaveBeenCalled();
+        expect(component.activeDLTitle).toBe('T');
+        expect(sharedData.setRefreshAutoCompleteValue).not.toHaveBeenCalled();
     });
 
     it('polls the queue while the drawer is open', fakeAsync(() => {
