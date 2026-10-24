@@ -3,6 +3,9 @@ import { VideoData, VideoDataRequest, QueueDownloads, VideoDataResponse } from '
 import { HttpClient } from '@angular/common/http';
 import { SharedDataService } from './shared-data.service';
 import { environment } from '../../environments/environment';
+import { Observable, repeat, retry } from 'rxjs';
+import { webSocket } from 'rxjs/webSocket';
+import { DownloadStatusEvent } from '../interfaces/download-status-event';
 
 const apiUrl: string = environment.baseUrl + "/api"
 
@@ -12,6 +15,12 @@ const apiUrl: string = environment.baseUrl + "/api"
 export class DownloadService {
 
     constructor(private http: HttpClient, private sharedData: SharedDataService) { }
+
+    // live download status; each subscription opens its own socket and reconnects after error (retry) and clean close (repeat)
+    statusEvents(): Observable<DownloadStatusEvent> {
+        const wsUrl = environment.baseUrl.replace("http://", "ws://") + "/ws/status"
+        return webSocket<DownloadStatusEvent>(wsUrl).pipe(retry({ delay: 2000 }), repeat({ delay: 2000 }))
+    }
 
     //metadata
     async getMetadata(request: VideoDataRequest): Promise<VideoDataResponse> {
