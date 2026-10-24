@@ -86,7 +86,7 @@ The application uses yt-dlp to fetch video metadata and thumbnail, if this is su
 Please refer this list of [upcoming work items](https://github.com/users/rs-anantmishra/projects/5) and please report any bugs if you find one!
 
 ## 🔼 Updating yt-dlp
-The latest version of streamspehre (v0.1.15) includes an update to upgrade yt-dlp each time the container is stopped and started.
+The latest version of streamsphere (v0.1.16) includes an update to upgrade yt-dlp each time the container is stopped and started.
 It can also be manually updated by following the below steps:
 ```
 # login into the container
