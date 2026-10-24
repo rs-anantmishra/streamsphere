@@ -1,4 +1,4 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { Subject } from 'rxjs';
 import { MessageService } from 'primeng/api';
 
@@ -107,4 +107,33 @@ describe('DownloadsComponent status events', () => {
         fixture.destroy();
         expect(events.observed).toBeFalse();
     });
+
+    it('rejects an empty URL', async () => {
+        const svc = fixture.debugElement.injector.get(DownloadService) as any;
+        svc.getMetadata = jasmine.createSpy('getMetadata');
+        component.options.Identifier = '';
+
+        await component.GetMedia();
+
+        expect(svc.getMetadata).not.toHaveBeenCalled();
+        expect(messageService.add).toHaveBeenCalledWith(jasmine.objectContaining({ severity: 'error', detail: 'Enter a video or playlist URL' }));
+        expect(component.loading).toBeFalse();
+        expect(component.urlInputDisabled).toBeFalse();
+    });
+
+    it('polls the queue while the drawer is open', fakeAsync(() => {
+        const svc = fixture.debugElement.injector.get(DownloadService) as any;
+        const spy = spyOn(svc, 'getQueuedItems').and.returnValue(Promise.resolve([]));
+
+        component.getQueuedItems(true);
+        tick(6000);
+        expect(spy.calls.count()).toBeGreaterThanOrEqual(3);
+
+        component.sidebarVisible = false;
+        tick(3000);
+        const calls = spy.calls.count();
+        tick(6000);
+        expect(spy.calls.count()).toBe(calls);
+        fixture.destroy();
+    }));
 });

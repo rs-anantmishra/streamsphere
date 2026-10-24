@@ -140,6 +140,11 @@ export class DownloadsComponent implements OnInit, OnDestroy {
     }
 
     async GetMedia() {
+        if (this.options.Identifier.trim() === '') {
+            this.showMessage('Enter a video or playlist URL', 'error', 'error')
+            return
+        }
+
         this.loading = true;
         this.activeDLTitle = this.msg.getTitle
         this.activeDLChannel = this.msg.getChannel
@@ -147,11 +152,6 @@ export class DownloadsComponent implements OnInit, OnDestroy {
 
         this.urlInputDisabled = true;
         let metadataRequest = this.GetMetadataRequest(this.options)
-        if (metadataRequest.Indicator === '') {
-            this.showMessage('No URL or Identifier provided', 'error', 'error')
-            this.GetMediaCompleteResult(false)
-            return
-        }
 
         try {
             let metadataResponse = await this.svcDownload.getMetadata(metadataRequest)
@@ -206,11 +206,6 @@ export class DownloadsComponent implements OnInit, OnDestroy {
         request.SubtitlesReq = options.GetSubs
         request.IsAudioOnly = options.GetAudioOnly
 
-        if (request.Indicator === '') {
-            request.Indicator = 'UMBEkWFMacc'
-            this.showMessage('Using Test Video Indicator', 'info', 'Info')
-            return request
-        }
         return request
     }
 
@@ -223,8 +218,24 @@ export class DownloadsComponent implements OnInit, OnDestroy {
     async getQueuedItems(openSidebar: boolean) {
         if (openSidebar) {
             this.sidebarVisible = true
+            this.startQueuePolling()
         }
         await this.svcDownload.getQueuedItems("queued").then(item => { this.queuedItems = item; })
+    }
+
+    //keep the open drawer current
+    queueTimer?: ReturnType<typeof setInterval>
+    startQueuePolling() {
+        if (this.queueTimer) { return }
+        this.queueTimer = setInterval(() => {
+            if (!this.sidebarVisible) { this.stopQueuePolling(); return }
+            this.getQueuedItems(false)
+        }, 3000)
+    }
+
+    stopQueuePolling() {
+        clearInterval(this.queueTimer)
+        this.queueTimer = undefined
     }
 
     fsStorageStatus: number = 0
@@ -243,6 +254,7 @@ export class DownloadsComponent implements OnInit, OnDestroy {
         // prevent memory leak when component destroyed
         this.statusSubscription?.unsubscribe();
         clearInterval(this.placeholderTimer);
+        this.stopQueuePolling();
     }
 
     //placeholders = ['Video or Playlist URL', 'youtube.com/watch?v=cXdwGt_xPCI', 'cXdwGt_xPCI', 'youtu.be/cXdwGt_xPCI?si=r7GvF9rndAtAkb0n', 'youtube.com/watch?v=cABfEaP2IHo&list=PL3uDtbb3OvDMn16H-YSIHpdntVMZ6V4WU', 'youtube.com/playlist?list=PL3uDtbb3OvDMn16H-YSIHpdntVMZ6V4WU', 'PL3uDtbb3OvDMn16H-YSIHpdntVMZ6V4WU'];
