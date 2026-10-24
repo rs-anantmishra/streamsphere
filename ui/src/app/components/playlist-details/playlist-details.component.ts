@@ -184,13 +184,6 @@ export class PlaylistDetailsComponent implements OnInit {
         });
     }
 
-    linkify(text: string) {
-        var urlRegex = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
-        return text.replace(urlRegex, function (url) {
-            return '<a href="' + url + '">' + url + '</a>';
-        });
-    }
-
     cp1252_to_utf8(text: string) {
         let chars_map: IObjectKeys = {
             "21": "!", "22": '"', "23": "#", "24": "$", "25": "%", "26": "&", "27": "'", "28": "(", "29": ")", "2a": "*", "2b": "+", "2c": ",",

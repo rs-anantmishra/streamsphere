@@ -11,6 +11,7 @@ import { ConfirmPopup, ConfirmPopupModule } from 'primeng/confirmpopup';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
 import { UrlEncode } from '../../utilities/url-encode';
+import { linkify } from '../../utilities/linkify';
 import Plyr from 'plyr';
 
 import { MinifiedViewCount } from '../../utilities/pipes/views-conversion.pipe'
@@ -48,7 +49,7 @@ export class VideoDetailsComponent implements OnInit {
         this.selectedVideo.webpage_url = this.selectedVideo.webpage_url
 
         this.selectedVideo.description = this.cp1252_to_utf8(this.selectedVideo.description)
-        this.selectedVideo.description = this.linkify(this.selectedVideo.description)
+        this.selectedVideo.description = linkify(this.selectedVideo.description)
 
         this.player = new Plyr('#plyrId', { captions: { active: true }, keyboard: { global: true }, autoplay: true });
     }
@@ -93,13 +94,6 @@ export class VideoDetailsComponent implements OnInit {
             reject: () => {
                 this.messageService.add({ severity: 'error', summary: 'Rejected', detail: 'Delete Cancelled', life: 3000 });
             }
-        });
-    }
-
-    linkify(text: string) {
-        var urlRegex = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
-        return text.replace(urlRegex, function (url) {
-            return '<a href="' + url + '">' + url + '</a>';
         });
     }
 
