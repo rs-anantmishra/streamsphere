@@ -66,6 +66,33 @@ describe('DownloadsComponent status events', () => {
         expect(component.downloadPercent).toBe(100);
     });
 
+    it('refreshes search once when saving goes idle without a completed event', () => {
+        component.handleStatusEvent(statusEvent({ state: 'saving', video_id: 5, download: '[download] Saving file to library...' }));
+        component.handleStatusEvent(statusEvent({ state: 'idle', video_id: 0 }));
+        component.handleStatusEvent(statusEvent({ state: 'idle', video_id: 0 }));
+
+        expect(sharedData.setRefreshAutoCompleteValue).toHaveBeenCalledTimes(1);
+        expect(component.downloadPercent).toBe(100);
+    });
+
+    it('clears the progress line when a download goes idle mid-way', () => {
+        component.handleStatusEvent(statusEvent({ video_id: 6, download: '[download]  45.3% of  229.20MiB', title: 'A Title' }));
+        component.handleStatusEvent(statusEvent({ state: 'idle', video_id: 0 }));
+
+        expect(component.serverLogs).toBe('');
+        expect(component.downloadPercent).toBeNull();
+        expect(component.activeDLTitle).toBe('A Title');
+        expect(sharedData.setRefreshAutoCompleteValue).not.toHaveBeenCalled();
+    });
+
+    it('refreshes twice when the same video completes, downloads again and completes', () => {
+        component.handleStatusEvent(statusEvent({ state: 'completed', video_id: 7, download: 'Download completed successfully.' }));
+        component.handleStatusEvent(statusEvent({ video_id: 7, download: '[download]  10.0% of  1.00MiB' }));
+        component.handleStatusEvent(statusEvent({ state: 'completed', video_id: 7, download: 'Download completed successfully.' }));
+
+        expect(sharedData.setRefreshAutoCompleteValue).toHaveBeenCalledTimes(2);
+    });
+
     it('shows one toast per failed video', () => {
         component.handleStatusEvent(statusEvent({ state: 'failed', video_id: 9, download: 'ERROR: boom' }));
         component.handleStatusEvent(statusEvent({ state: 'failed', video_id: 9, download: 'ERROR: boom' }));
@@ -76,12 +103,12 @@ describe('DownloadsComponent status events', () => {
     });
 
     it('keeps the last item on idle', () => {
-        component.handleStatusEvent(statusEvent({ title: 'A Title', channel: 'A Channel', download: '[download]  10.0% of 1MiB' }));
+        component.handleStatusEvent(statusEvent({ state: 'completed', title: 'A Title', channel: 'A Channel', download: 'Download completed successfully.' }));
         component.handleStatusEvent(statusEvent({ state: 'idle', video_id: 0 }));
 
         expect(component.activeDLTitle).toBe('A Title');
         expect(component.activeDLChannel).toBe('A Channel');
-        expect(component.serverLogs).toBe('[download]  10.0% of 1MiB');
+        expect(component.serverLogs).toBe('Download completed successfully.');
     });
 
     it('keeps the default logs on idle when nothing is shown', () => {

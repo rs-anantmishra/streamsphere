@@ -64,6 +64,7 @@ export class DownloadsComponent implements OnInit, OnDestroy {
     downloadPercent: number | null = null
     private completedIds = new Set<number>()
     private failedIds = new Set<number>()
+    private lastEvent?: DownloadStatusEvent
 
     activeDLImage = ''
     activeDLChannel = ''
@@ -101,6 +102,9 @@ export class DownloadsComponent implements OnInit, OnDestroy {
     }
 
     handleStatusEvent(event: DownloadStatusEvent) {
+        this.finishEndedItem(event)
+        this.lastEvent = event
+
         //idle - leave the last item displayed
         if (event.state === 'idle') { return }
 
@@ -120,15 +124,37 @@ export class DownloadsComponent implements OnInit, OnDestroy {
             this.downloadPercent = null
         }
 
-        //the server repeats completed/failed until the next item starts - act once per video
-        if (event.state === 'completed' && !this.completedIds.has(event.video_id)) {
-            this.completedIds.add(event.video_id)
-            //the server sends completion only after the file is saved, so search can refresh right away
-            this.sharedData.setRefreshAutoCompleteValue(true);
+        //the server holds completed/failed for about a second - act once per video
+        if (event.state === 'completed') {
+            this.markCompleted(event.video_id)
         } else if (event.state === 'failed' && !this.failedIds.has(event.video_id)) {
             this.failedIds.add(event.video_id)
             this.showMessage('Download failed: ' + (event.title || event.download), 'error', 'error')
         }
+    }
+
+    //the server's completed message is short-lived and can fall between two status checks (or be lost to a reconnect)
+    private finishEndedItem(event: DownloadStatusEvent) {
+        const prev = this.lastEvent
+        if (!prev || (prev.state !== 'downloading' && prev.state !== 'saving')) { return }
+        if (event.state !== 'idle' && event.video_id === prev.video_id) { return }
+
+        if (prev.state === 'saving') {
+            //the file was being saved, so it is in the library now
+            this.downloadPercent = 100
+            this.markCompleted(prev.video_id)
+        } else {
+            //interrupted mid-download - drop the stale progress line
+            this.serverLogs = ''
+            this.downloadPercent = null
+        }
+    }
+
+    //the server sends completion only after the file is saved, so search can refresh right away
+    private markCompleted(videoId: number) {
+        if (this.completedIds.has(videoId)) { return }
+        this.completedIds.add(videoId)
+        this.sharedData.setRefreshAutoCompleteValue(true);
     }
 
     flipCheckbox(event: any, option: string): void {
