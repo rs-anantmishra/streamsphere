@@ -15,7 +15,7 @@ import { Subscription } from 'rxjs';
 @Component({
     selector: 'app-videos',
     imports: [SimplecardComponent, CommonModule, PaginatorModule, ButtonModule, ScrollPanelModule, RouterModule, ProgressSpinnerModule],
-    providers: [Router, SharedDataService],
+    providers: [SharedDataService],
     templateUrl: './videos.component.html',
     styleUrl: './videos.component.scss'
 })

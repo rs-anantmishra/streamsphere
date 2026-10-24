@@ -31,7 +31,7 @@ import { FilesizeConversionPipe } from "../../utilities/pipes/filesize-conversio
     selector: 'app-video-details',
     imports: [RouterModule, ButtonModule, PanelModule, ScrollPanelModule, TagModule, ChipModule, ConfirmPopupModule, ToastModule,
         MinifiedViewCount, MinifiedLikeCount, CommaSepStringFromArray, FormattedResolutionPipe, MinifiedDatePipe, FieldsetModule, FilesizeConversionPipe],
-    providers: [Router, SharedDataService, ConfirmationService, MessageService, UrlEncode],
+    providers: [SharedDataService, ConfirmationService, MessageService, UrlEncode],
     templateUrl: './video-details.component.html',
     styleUrl: './video-details.component.scss',
     encapsulation: ViewEncapsulation.None

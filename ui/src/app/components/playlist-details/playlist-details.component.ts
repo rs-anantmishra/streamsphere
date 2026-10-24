@@ -34,7 +34,7 @@ import Plyr from 'plyr';
     imports: [CommonModule, RouterModule, ButtonModule, PanelModule, ScrollPanelModule, TagModule, ConfirmPopupModule, ToastModule,
         ChipModule, MinifiedViewCount, MinifiedLikeCount, CommaSepStringFromArray, FormattedResolutionPipe,
         MinifiedDatePipe, FieldsetModule, FilesizeConversionPipe, ProgressSpinnerModule, LinkifyPipe],
-    providers: [Router, ConfirmationService, MessageService, UrlEncode],
+    providers: [ConfirmationService, MessageService, UrlEncode],
     templateUrl: './playlist-details.component.html',
     styleUrl: './playlist-details.component.scss'
 })
