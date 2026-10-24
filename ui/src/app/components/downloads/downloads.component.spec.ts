@@ -163,4 +163,31 @@ describe('DownloadsComponent status events', () => {
         expect(spy.calls.count()).toBe(calls);
         fixture.destroy();
     }));
+
+    it('does not start a second queue poll while one is still running', fakeAsync(() => {
+        const svc = fixture.debugElement.injector.get(DownloadService) as any;
+        const spy = spyOn(svc, 'getQueuedItems').and.returnValue(new Promise(() => { }));
+
+        component.getQueuedItems(true);
+        tick(9000);
+
+        //the click itself plus the first poll - later ticks are skipped while that poll hangs
+        expect(spy.calls.count()).toBe(2);
+        fixture.destroy();
+    }));
+
+    it('keeps the last queue and keeps polling when a poll fails', fakeAsync(() => {
+        const svc = fixture.debugElement.injector.get(DownloadService) as any;
+        const items = [{ title: 'Queued One' }];
+        const spy = spyOn(svc, 'getQueuedItems').and.callFake(() => spy.calls.count() === 2 ? Promise.reject('down') : Promise.resolve(items));
+        spyOn(console, 'error');
+
+        component.getQueuedItems(true);
+        tick(6000);
+
+        expect(spy.calls.count()).toBe(3);
+        expect(component.queuedItems as any).toBe(items);
+        expect(console.error).toHaveBeenCalledTimes(1);
+        fixture.destroy();
+    }));
 });

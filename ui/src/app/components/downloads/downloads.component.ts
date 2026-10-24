@@ -251,11 +251,21 @@ export class DownloadsComponent implements OnInit, OnDestroy {
 
     //keep the open drawer current
     queueTimer?: ReturnType<typeof setInterval>
+    private queuePollInFlight = false
     startQueuePolling() {
         if (this.queueTimer) { return }
-        this.queueTimer = setInterval(() => {
+        this.queueTimer = setInterval(async () => {
             if (!this.sidebarVisible) { this.stopQueuePolling(); return }
-            this.getQueuedItems(false)
+            //a slow request must not overlap the next one, a failed one keeps the last list on screen
+            if (this.queuePollInFlight) { return }
+            this.queuePollInFlight = true
+            try {
+                await this.getQueuedItems(false)
+            } catch (err) {
+                console.error('error: failed to refresh queued items.', err)
+            } finally {
+                this.queuePollInFlight = false
+            }
         }, 3000)
     }
 
