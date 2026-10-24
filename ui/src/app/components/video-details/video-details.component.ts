@@ -1,5 +1,6 @@
-import { Component, OnInit, ViewEncapsulation, ViewChild } from '@angular/core';
-import { Router, RouterModule } from '@angular/router';
+import { Component, ElementRef, OnInit, OnDestroy, ViewEncapsulation, ViewChild } from '@angular/core';
+import { NavigationEnd, Router, RouterModule } from '@angular/router';
+import { Subscription, filter } from 'rxjs';
 import { ButtonModule } from 'primeng/button';
 import { SharedDataService } from '../../services/shared-data.service';
 import { VideoData } from '../../classes/video-data';
@@ -35,17 +36,35 @@ import { FilesizeConversionPipe } from "../../utilities/pipes/filesize-conversio
     styleUrl: './video-details.component.scss',
     encapsulation: ViewEncapsulation.None
 })
-export class VideoDetailsComponent implements OnInit {
+export class VideoDetailsComponent implements OnInit, OnDestroy {
 
     public player: any;
+    private routeSubscription?: Subscription;
     selectedVideo: VideoData = new VideoData()
     @ViewChild(ConfirmPopup) confirmPopup!: ConfirmPopup;
+    @ViewChild('playerVideo', { static: true }) playerVideo!: ElementRef<HTMLVideoElement>;
     constructor(private confirmationService: ConfirmationService, private messageService: MessageService, private router: Router, private urlEncode: UrlEncode,
         private svcSharedData: SharedDataService, private svcVideos: VideosService) {
     }
 
     async ngOnInit(): Promise<void> {
-        this.selectedVideo = await this.svcSharedData.getActivePlayerMetadata();
+        this.loadSelectedVideo();
+
+        this.player = new Plyr(this.playerVideo.nativeElement, { captions: { active: true }, keyboard: { global: true }, autoplay: true });
+        this.playSelectedVideo();
+
+        //picking another video while on this page is a navigation to the same url - the page is reused, so look again
+        this.routeSubscription = this.router.events.pipe(filter(e => e instanceof NavigationEnd))
+            .subscribe(() => this.switchVideoIfChanged());
+    }
+
+    ngOnDestroy(): void {
+        this.routeSubscription?.unsubscribe();
+        this.player?.destroy();
+    }
+
+    private loadSelectedVideo() {
+        this.selectedVideo = this.svcSharedData.getActivePlayerMetadata();
 
         this.selectedVideo.media_url = this.selectedVideo.media_url
         this.selectedVideo.thumbnail = this.selectedVideo.thumbnail
@@ -53,8 +72,21 @@ export class VideoDetailsComponent implements OnInit {
 
         this.selectedVideo.description = cp1252_to_utf8(this.selectedVideo.description)
         this.selectedVideo.description = linkify(this.selectedVideo.description)
+    }
 
-        this.player = new Plyr('#plyrId', { captions: { active: true }, keyboard: { global: true }, autoplay: true });
+    private switchVideoIfChanged() {
+        if (this.svcSharedData.getActivePlayerMetadata().video_id === this.selectedVideo.video_id) { return }
+
+        this.loadSelectedVideo();
+        this.playSelectedVideo();
+    }
+
+    private playSelectedVideo() {
+        this.player.source = {
+            type: 'video',
+            sources: [{ src: this.selectedVideo.media_url, type: 'video/webm' }],
+            poster: this.selectedVideo.thumbnail
+        };
     }
 
     async download(): Promise<void> {
