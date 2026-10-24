@@ -106,10 +106,10 @@
                             </p-confirmpopup>
                         </div>
                         <p-button icon="pi pi-trash" (onClick)="confirm($event, this.selectedVideo.video_id)" [style]="{'margin': '2px'}"
-                            size="small" outlined="true" severity="danger" label="" />
+                            size="small" outlined="true" severity="danger" label="" [disabled]="!hasVideo" />
                         <!-- download -->
                         <p-button icon="pi pi-download" (click)="download()" size="small" severity="secondary" [style]="{'margin': '2px'}"
-                            label="Download" />
+                            label="Download" [disabled]="!hasVideo" />
                     </div>
                 </div>
             </p-fieldset>

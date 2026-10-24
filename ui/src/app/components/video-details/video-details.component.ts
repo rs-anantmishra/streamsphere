@@ -81,7 +81,13 @@ export class VideoDetailsComponent implements OnInit, OnDestroy {
         this.playSelectedVideo();
     }
 
+    //nothing is saved when this page is opened without picking a video first
+    get hasVideo(): boolean {
+        return this.selectedVideo.media_url !== ''
+    }
+
     private playSelectedVideo() {
+        if (!this.hasVideo) { return }
         this.player.source = {
             type: 'video',
             sources: [{ src: this.selectedVideo.media_url, type: 'video/webm' }],
@@ -90,9 +96,13 @@ export class VideoDetailsComponent implements OnInit, OnDestroy {
     }
 
     async download(): Promise<void> {
+        if (!this.hasVideo) { return }
         (await this.svcVideos
             .download(this.selectedVideo.media_url))
-            .subscribe(blob => downloadBlob(blob, this.selectedVideo.title + '.' + this.selectedVideo.extension))
+            .subscribe({
+                next: blob => downloadBlob(blob, this.selectedVideo.title + '.' + this.selectedVideo.extension),
+                error: () => this.messageService.add({ severity: 'error', summary: 'Failed', detail: 'Download failed', life: 3000 })
+            })
     }
 
     accept() {

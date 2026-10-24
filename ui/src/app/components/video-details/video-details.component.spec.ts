@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
 import { ConfirmationService, MessageService } from 'primeng/api';
+import { throwError } from 'rxjs';
 
 import { VideoDetailsComponent } from './video-details.component';
 import { SharedDataService } from '../../services/shared-data.service';
@@ -84,5 +85,34 @@ describe('VideoDetailsComponent', () => {
         saved = video(3, 'Third');
         await router.navigateByUrl('/other');
         expect(player.source).toBeUndefined();
+    });
+
+    it('has no video to play when nothing was saved', async () => {
+        saved = new VideoData();
+        await router.navigateByUrl('/other');
+
+        expect(component.hasVideo).toBeFalse();
+        expect(player.source).toBeUndefined();
+    });
+
+    it('does not ask for a file when there is no video', async () => {
+        saved = new VideoData();
+        await router.navigateByUrl('/other');
+        const svc = fixture.debugElement.injector.get(VideosService) as any;
+        svc.download = jasmine.createSpy('download');
+
+        await component.download();
+
+        expect(svc.download).not.toHaveBeenCalled();
+    });
+
+    it('tells the user when the download fails', async () => {
+        const svc = fixture.debugElement.injector.get(VideosService) as any;
+        svc.download = () => Promise.resolve(throwError(() => new Error('404')));
+        const toast = spyOn(fixture.debugElement.injector.get(MessageService), 'add');
+
+        await component.download();
+
+        expect(toast).toHaveBeenCalledWith(jasmine.objectContaining({ severity: 'error', detail: 'Download failed' }));
     });
 });
