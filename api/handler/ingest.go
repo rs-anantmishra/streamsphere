@@ -154,6 +154,21 @@ func DownloadStatus(c *websocket.Conn) {
 	activeItem := g.NewActiveItem()
 	var lastIdle time.Time
 
+	// Read so the library processes the client's close frame; any error ends the handler.
+	// Capture the raw conn: c is pooled and its embedded Conn is nilled when the handler returns.
+	ws := c.Conn
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		for {
+			if _, _, err := ws.ReadMessage(); err != nil {
+				return
+			}
+		}
+	}()
+	ticker := time.NewTicker(time.Second)
+	defer ticker.Stop()
+
 	for {
 		var dsr res.DownloadStatusResponse
 		if len(activeItem) > 0 {
@@ -186,7 +201,11 @@ func DownloadStatus(c *websocket.Conn) {
 		}
 
 		//transmit data once per second
-		time.Sleep(time.Second)
+		select {
+		case <-done:
+			return
+		case <-ticker.C:
+		}
 	}
 }
 
