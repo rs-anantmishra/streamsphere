@@ -44,8 +44,8 @@ func NetworkIngestMetadata(c *fiber.Ctx) error {
 	// If Metadata is not fetched, and there is an error message from yt-dlp
 	// just show that error on the UI
 	result, err := svcVideos.ExtractIngestMetadata(*params)
-	if len(result) == 0 {
-		err = errors.New("invalid url provided")
+	if len(result) == 0 && err == nil {
+		err = errors.New("no video information was returned for this url")
 	}
 	if err != nil {
 		status = `failure`

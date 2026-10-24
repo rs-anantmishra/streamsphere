@@ -3,6 +3,7 @@ package extractor
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -17,7 +18,7 @@ import (
 )
 
 type IDownload interface {
-	ExtractMetadata() ([]e.MediaInformation, e.Filepath)
+	ExtractMetadata() ([]e.MediaInformation, e.Filepath, error)
 	ExtractMediaContent(smi e.SavedInfo) int
 	ExtractSubtitles(fp e.Filepath, lstSavedInfo []e.SavedInfo) []e.Files
 	ExtractThumbnail(fp e.Filepath, lstSavedInfo []e.SavedInfo) []e.Files
@@ -47,7 +48,7 @@ func (d *download) Cleanup() {
 	d.lstDownloads = updated
 }
 
-func (d *download) ExtractMetadata() ([]e.MediaInformation, e.Filepath) {
+func (d *download) ExtractMetadata() ([]e.MediaInformation, e.Filepath, error) {
 
 	args, command, totalItems := cmdBuilderMetadata(d.p.Indicator)
 	logCommand := command + Space + args
@@ -77,9 +78,9 @@ func (d *download) ExtractMetadata() ([]e.MediaInformation, e.Filepath) {
 		////////////////////////////////////
 
 		fp := e.Filepath{Domain: mediaInfo[0].Domain, Channel: mediaInfo[0].Channel, PlaylistTitle: mediaInfo[0].PlaylistTitle}
-		return mediaInfo, fp
+		return mediaInfo, fp, nil
 	}
-	return nil, e.Filepath{}
+	return nil, e.Filepath{}, errors.New(explainMetadataFailure(pResult))
 }
 
 func (d *download) ExtractMediaContent(smi e.SavedInfo) int {

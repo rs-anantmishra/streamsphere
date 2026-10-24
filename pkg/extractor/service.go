@@ -32,7 +32,10 @@ func NewDownloadService(r IRepository, d IDownload) IService {
 func (s *service) ExtractIngestMetadata(params e.IncomingRequest) ([]p.CardsInfoResponse, error) {
 	var response []p.CardsInfoResponse
 
-	metadata, fp := s.download.ExtractMetadata()
+	metadata, fp, err := s.download.ExtractMetadata()
+	if err != nil {
+		return response, err
+	}
 	if len(metadata) > 0 {
 		domainCheck := checkContentDomain(metadata) //temporary check placed
 		if !domainCheck {
