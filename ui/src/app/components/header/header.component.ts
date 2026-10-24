@@ -7,11 +7,11 @@ import { ToastModule } from 'primeng/toast';
 import { FilterService, SelectItemGroup } from 'primeng/api';
 import { AutoCompleteCompleteEvent, AutoCompleteModule } from 'primeng/autocomplete';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { NavigationEnd, Router } from '@angular/router';
 import { SharedDataService } from '../../services/shared-data.service';
 import { VideosService } from '../../services/videos.service';
 import { ContentSearchResponse, ContentSearch } from '../../classes/search';
-import { Subscription, skip } from 'rxjs';
+import { Subscription, filter, skip } from 'rxjs';
 import { VideoData, VideoDataResponse } from '../../classes/video-data';
 
 @Component({
@@ -25,6 +25,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
     //isHomepage route?
     isHomepage = false
+    private routeSubscription?: Subscription;
 
     //subs updates this
     searchCacheSubscription!: Subscription;
@@ -74,17 +75,19 @@ export class HeaderComponent implements OnInit, OnDestroy {
     ngOnDestroy(): void {
         //unsubscribe
         this.searchCacheSubscription.unsubscribe()
+        this.routeSubscription?.unsubscribe()
     }
 
     navigate(route: string) {
-        this.checkIsHomepage(route)
         this.router.navigate([route]);
     }
 
     home: MenuItem | undefined;
     async ngOnInit(): Promise<void> {
-        //check and set if homepage
-        this.checkIsHomepage('/home')
+        //the router knows the page, whichever way it was reached (menu, search, cards, back button, reload)
+        this.setIsHomepage(this.router.url)
+        this.routeSubscription = this.router.events.pipe(filter(e => e instanceof NavigationEnd))
+            .subscribe(e => this.setIsHomepage(e.urlAfterRedirects))
 
         //nav-items
         this.initNavItems();
@@ -202,13 +205,10 @@ export class HeaderComponent implements OnInit, OnDestroy {
         ];
     }
 
-    checkIsHomepage(route: string) {
-        //if any of the mentioned reourtes are not going to PROC then its going to home.
-        if (route === '/videos' || route === '/tags' || route === '/categories' || route === '/videos/play' || route === '/playlists' || route === '/playlist-details') {
-            this.isHomepage = false
-        } else {
-            this.isHomepage = true
-        }
+    private setIsHomepage(url: string) {
+        //home is the download page - the empty path redirects to it
+        const path = url.split(/[?#]/)[0]
+        this.isHomepage = path === '/home' || path === '/' || path === ''
     }
 
     //search result - selected by click or keyboard (onSelect passes the full { label, value } option)
