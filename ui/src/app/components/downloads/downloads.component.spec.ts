@@ -1,0 +1,110 @@
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { Subject } from 'rxjs';
+import { MessageService } from 'primeng/api';
+
+import { DownloadsComponent } from './downloads.component';
+import { DownloadService } from '../../services/download.service';
+import { FilesService } from '../../services/files.service';
+import { SharedDataService } from '../../services/shared-data.service';
+import { Messages } from '../../constants/messages';
+import { UrlEncode } from '../../utilities/url-encode';
+import { DownloadStatusEvent } from '../../interfaces/download-status-event';
+
+function statusEvent(overrides: Partial<DownloadStatusEvent>): DownloadStatusEvent {
+    return { download: '', video_url: '', state: 'downloading', video_id: 1, title: '', channel: '', thumbnail: '', ...overrides };
+}
+
+describe('DownloadsComponent status events', () => {
+    let fixture: ComponentFixture<DownloadsComponent>;
+    let component: DownloadsComponent;
+    let events: Subject<DownloadStatusEvent>;
+    let sharedData: SharedDataService;
+    let messageService: MessageService;
+
+    beforeEach(() => {
+        events = new Subject<DownloadStatusEvent>();
+        TestBed.configureTestingModule({ imports: [DownloadsComponent] });
+        // the component provides its own services, so they are replaced at component level
+        TestBed.overrideComponent(DownloadsComponent, {
+            set: {
+                providers: [
+                    { provide: DownloadService, useValue: { statusEvents: () => events, getQueuedItems: () => Promise.resolve([]) } },
+                    { provide: FilesService, useValue: {} },
+                    MessageService, Messages, UrlEncode
+                ]
+            }
+        });
+        fixture = TestBed.createComponent(DownloadsComponent);
+        component = fixture.componentInstance;
+        sharedData = TestBed.inject(SharedDataService);
+        messageService = fixture.debugElement.injector.get(MessageService);
+        spyOn(sharedData, 'setRefreshAutoCompleteValue');
+        spyOn(messageService, 'add');
+    });
+
+    afterEach(() => fixture.destroy());
+
+    it('renders title, channel and progress from a downloading event', () => {
+        component.handleStatusEvent(statusEvent({
+            download: '[download]  45.3% of  229.20MiB at 19.19MiB/s ETA 00:10',
+            title: 'A Title', channel: 'A Channel', thumbnail: 'thumb.jpg'
+        }));
+
+        expect(component.activeDLTitle).toBe('A Title');
+        expect(component.activeDLChannel).toBe('A Channel');
+        expect(component.activeDLImage).toBe('thumb.jpg');
+        expect(component.serverLogs).toBe('[download]  45.3% of  229.20MiB at 19.19MiB/s ETA 00:10');
+        expect(component.downloadPercent).toBe(45.3);
+    });
+
+    it('refreshes search once per completed video', () => {
+        component.handleStatusEvent(statusEvent({ state: 'completed', video_id: 7, download: 'Download completed successfully.' }));
+        component.handleStatusEvent(statusEvent({ state: 'completed', video_id: 7, download: 'Download completed successfully.' }));
+        component.handleStatusEvent(statusEvent({ state: 'completed', video_id: 8, download: 'Download completed successfully.' }));
+
+        expect(sharedData.setRefreshAutoCompleteValue).toHaveBeenCalledTimes(2);
+        expect(component.downloadPercent).toBe(100);
+    });
+
+    it('shows one toast per failed video', () => {
+        component.handleStatusEvent(statusEvent({ state: 'failed', video_id: 9, download: 'ERROR: boom' }));
+        component.handleStatusEvent(statusEvent({ state: 'failed', video_id: 9, download: 'ERROR: boom' }));
+
+        expect(messageService.add).toHaveBeenCalledTimes(1);
+        expect(sharedData.setRefreshAutoCompleteValue).not.toHaveBeenCalled();
+        expect(component.downloadPercent).toBeNull();
+    });
+
+    it('keeps the last item on idle', () => {
+        component.handleStatusEvent(statusEvent({ title: 'A Title', channel: 'A Channel', download: '[download]  10.0% of 1MiB' }));
+        component.handleStatusEvent(statusEvent({ state: 'idle', video_id: 0 }));
+
+        expect(component.activeDLTitle).toBe('A Title');
+        expect(component.activeDLChannel).toBe('A Channel');
+        expect(component.serverLogs).toBe('[download]  10.0% of 1MiB');
+    });
+
+    it('keeps the default logs on idle when nothing is shown', () => {
+        component.handleStatusEvent(statusEvent({ state: 'idle', video_id: 0 }));
+
+        expect(component.serverLogs).toBe('no logs available');
+        expect(component.activeDLTitle).toBe('');
+    });
+
+    it('keeps the previous title when an event field is empty', () => {
+        component.handleStatusEvent(statusEvent({ title: 'A Title', channel: 'A Channel' }));
+        component.handleStatusEvent(statusEvent({ state: 'saving', download: 'saving' }));
+
+        expect(component.activeDLTitle).toBe('A Title');
+        expect(component.activeDLChannel).toBe('A Channel');
+    });
+
+    it('handles events from the service after init and stops after destroy', () => {
+        fixture.detectChanges();
+        events.next(statusEvent({ title: 'Live' }));
+        expect(component.activeDLTitle).toBe('Live');
+
+        fixture.destroy();
+        expect(events.observed).toBeFalse();
+    });
+});
