@@ -11,7 +11,7 @@ import { Router } from '@angular/router';
 import { SharedDataService } from '../../services/shared-data.service';
 import { VideosService } from '../../services/videos.service';
 import { ContentSearchResponse, ContentSearch } from '../../classes/search';
-import { Subscription } from 'rxjs';
+import { Subscription, skip } from 'rxjs';
 import { VideoData, VideoDataResponse } from '../../classes/video-data';
 
 @Component({
@@ -64,30 +64,12 @@ export class HeaderComponent implements OnInit, OnDestroy {
     navItems!: MenuItem[];
     filteredGroups!: any[];
     selectedTitle: any;
-    groupedTitles!: SelectItemGroup[];
+    groupedTitles: SelectItemGroup[] = [];
 
     constructor(private router: Router,
         private videosSvc: VideosService,
         private filterService: FilterService,
         public sharedDataSvc: SharedDataService) {
-
-        //check and set if homepage
-        this.checkIsHomepage('/home')
-
-        //nav-items
-        this.initNavItems();
-
-        //check and set theme
-        let isDarkMode = this.sharedDataSvc.getIsDarkMode();
-        if (isDarkMode === null) {
-            this.sharedDataSvc.setIsDarkMode(true)
-        } else {
-            if (isDarkMode === true) {
-                this.setDarkMode()
-            } else if (isDarkMode === false) {
-                this.setLightMode()
-            }
-        }
     }
     ngOnDestroy(): void {
         //unsubscribe
@@ -101,19 +83,46 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
     home: MenuItem | undefined;
     async ngOnInit(): Promise<void> {
-        //update cache
-        this.searchCacheSubscription = this.sharedDataSvc._refreshAutoComplete$.subscribe(() => { this.buildAutoCompleteCache(); })
+        //check and set if homepage
+        this.checkIsHomepage('/home')
+
+        //nav-items
+        this.initNavItems();
+
+        //check and set theme
+        this.initTheme();
+
+        //update cache - skip the BehaviorSubject's initial value, the initial load is done below
+        this.searchCacheSubscription = this.sharedDataSvc._refreshAutoComplete$.pipe(skip(1)).subscribe(() => { this.buildAutoCompleteCache(); })
         await this.buildAutoCompleteCache();
     }
 
-    async buildAutoCompleteCache() {
-        let result = await this.videosSvc.getContentSearchInfo()
-        if (result.data !== null) {
-            this.groupedTitles = await this.buildAutoCompleteDataset(result)
+    private initTheme() {
+        let isDarkMode = this.sharedDataSvc.getIsDarkMode();
+        if (isDarkMode === null) {
+            this.sharedDataSvc.setIsDarkMode(true)
+        } else {
+            if (isDarkMode === true) {
+                this.setDarkMode()
+            } else if (isDarkMode === false) {
+                this.setLightMode()
+            }
         }
     }
 
-    async buildAutoCompleteDataset(raw: ContentSearchResponse): Promise<SelectItemGroup[]> {
+    async buildAutoCompleteCache() {
+        try {
+            let result = await this.videosSvc.getContentSearchInfo()
+            if (result.data !== null) {
+                this.groupedTitles = this.buildAutoCompleteDataset(result)
+            }
+        } catch (err) {
+            //keep the previous search cache if a refresh fails
+            console.error('error: failed to build search cache.', err)
+        }
+    }
+
+    buildAutoCompleteDataset(raw: ContentSearchResponse): SelectItemGroup[] {
         let content: ContentSearch[] = raw.data;
         let result: SelectItemGroup[] = [];
 
@@ -136,6 +145,11 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
     //keyboard shortcuts
     @HostListener("document:keydown", ["$event"]) handleKeyboardEvent(event: KeyboardEvent) {
+        //ignore shortcuts while typing in a text field
+        const target = event.target as HTMLElement;
+        if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement || target?.isContentEditable) {
+            return;
+        }
         if (event.key === 'P') {
             this.navigate('/playlists')
         }
@@ -197,26 +211,12 @@ export class HeaderComponent implements OnInit, OnDestroy {
         }
     }
 
-    //search result - clicked
+    //search result - selected by click or keyboard (onSelect passes the full { label, value } option)
     async navigateToVideo(selected: any) {
-        //click on an empty search field
         if (selected !== undefined) {
             let result = await this.videosSvc.getContentById(selected.value)
             if (result.data != null) {
                 this.selectedVideo(result.data[0])
-            }
-        }
-    }
-
-    //search result - enter pressed
-    async navigateToVideoOnEnter(selected: any, $event: KeyboardEvent) {
-        if ($event.key == 'Enter') {
-            //click on an empty search field
-            if (selected !== undefined) {
-                let result = await this.videosSvc.getContentById(selected.value)
-                if (result.data != null) {
-                    this.selectedVideo(result.data[0])
-                }
             }
         }
     }
