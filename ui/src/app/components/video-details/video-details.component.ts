@@ -13,6 +13,7 @@ import { ToastModule } from 'primeng/toast';
 import { UrlEncode } from '../../utilities/url-encode';
 import { linkify } from '../../utilities/linkify';
 import { cp1252_to_utf8 } from '../../utilities/cp1252-to-utf8';
+import { downloadBlob } from '../../utilities/download-blob';
 import Plyr from 'plyr';
 
 import { MinifiedViewCount } from '../../utilities/pipes/views-conversion.pipe'
@@ -58,14 +59,7 @@ export class VideoDetailsComponent implements OnInit {
     async download(): Promise<void> {
         (await this.svcVideos
             .download(this.selectedVideo.media_url))
-            .subscribe(blob => {
-                const a = document.createElement('a')
-                const objectUrl = URL.createObjectURL(blob)
-                a.href = objectUrl
-                a.download = (this.selectedVideo.title + '.' + this.selectedVideo.extension);
-                a.click();
-                URL.revokeObjectURL(objectUrl);
-            })
+            .subscribe(blob => downloadBlob(blob, this.selectedVideo.title + '.' + this.selectedVideo.extension))
     }
 
     accept() {

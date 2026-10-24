@@ -24,6 +24,7 @@ import { FilesizeConversionPipe } from "../../utilities/pipes/filesize-conversio
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { LinkifyPipe } from '../../utilities/pipes/linkify.pipe';
 import { cp1252_to_utf8 } from '../../utilities/cp1252-to-utf8';
+import { downloadBlob } from '../../utilities/download-blob';
 import { UrlEncode } from '../../utilities/url-encode';
 import Plyr from 'plyr';
 
@@ -127,14 +128,7 @@ export class PlaylistDetailsComponent implements OnInit {
     async download(): Promise<void> {
         (await this.svcPlaylists
             .download(this.selectedVideo.media_url))
-            .subscribe(blob => {
-                const a = document.createElement('a')
-                const objectUrl = URL.createObjectURL(blob)
-                a.href = objectUrl
-                a.download = (this.selectedVideo.title + '.' + this.selectedVideo.extension);
-                a.click();
-                URL.revokeObjectURL(objectUrl);
-            })
+            .subscribe(blob => downloadBlob(blob, this.selectedVideo.title + '.' + this.selectedVideo.extension))
     }
 
     getClass(video: VideoData): string {
