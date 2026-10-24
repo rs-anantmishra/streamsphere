@@ -25,6 +25,7 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { LinkifyPipe } from '../../utilities/pipes/linkify.pipe';
 import { cp1252_to_utf8 } from '../../utilities/cp1252-to-utf8';
 import { downloadBlob } from '../../utilities/download-blob';
+import { confirmDelete } from '../../utilities/confirm-delete';
 import { UrlEncode } from '../../utilities/url-encode';
 import Plyr from 'plyr';
 
@@ -158,24 +159,6 @@ export class PlaylistDetailsComponent implements OnInit {
     }
 
     confirm(event: Event, contentId: number) {
-        this.confirmationService.confirm({
-            target: event.target as EventTarget,
-            message: 'Are you sure you want to delete this content?',
-            accept: () => {
-                this.svcPlaylists.deleteVideoById(contentId).then((result: any) => {
-                    if (result.data) {
-                        this.messageService.add({ severity: 'info', summary: 'Confirmed', detail: 'Content Deleted', life: 3000 });
-                        setTimeout(() => {
-                            this.router.navigate(['/home'])
-                        }, 3000);
-                    } else {
-                        this.messageService.add({ severity: 'error', summary: 'Failed', detail: 'Deleted Failed', life: 3000 });
-                    }
-                });
-            },
-            reject: () => {
-                this.messageService.add({ severity: 'error', summary: 'Rejected', detail: 'Delete Cancelled', life: 3000 });
-            }
-        });
+        confirmDelete(event, contentId, id => this.svcPlaylists.deleteVideoById(id), this.confirmationService, this.messageService, this.router);
     }
 }
