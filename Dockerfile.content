@@ -1,9 +1,9 @@
-FROM node:lts-bookworm-slim AS base
+FROM node:24-trixie-slim AS base
 
 # update system and install required packages
 RUN <<EOF
-apt update -y
-npm install -g http-server 
+npm install -g http-server@14
+npm cache clean --force
 EOF
 
 EXPOSE 3500
