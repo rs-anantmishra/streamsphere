@@ -11,7 +11,7 @@
           <input type="text" pInputText [placeholder]="urlPlaceholder"
             [ngModel]="this.options.Identifier | removePrefix"
             (ngModelChange)="this.options.Identifier=$event" [disabled]="urlInputDisabled" />
-          <button type="button" pButton label="Get" [loading]="loading" (click)="GetMedia()"></button>
+          <button type="button" pButton label="Get" [loading]="loading" [disabled]="loading" (click)="GetMedia()"></button>
         </p-inputGroup>
       </div>
       <div class="options-container">

@@ -350,7 +350,8 @@ func executeDownloadProcess(stdout io.ReadCloser, activeItem []g.DownloadStatus)
 		if err != nil {
 			log.Info("Error Reading:", err)
 			if err == io.EOF {
-				activeItem[0].StatusMessage = "Download completed successfully."
+				//completion is announced by ExtractIngestMedia once the file info is saved to the db
+				activeItem[0].StatusMessage = "[download] Saving file to library..."
 			} else {
 				activeItem[0].StatusMessage = "Error:" + err.Error()
 			}

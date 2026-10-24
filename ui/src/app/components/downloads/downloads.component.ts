@@ -19,6 +19,7 @@ import { FieldsetModule } from 'primeng/fieldset';
 import { DividerModule } from 'primeng/divider';
 import { PopoverModule } from 'primeng/popover';
 import { webSocket } from 'rxjs/webSocket'
+import { Subscription } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { UrlEncode } from '../../utilities/url-encode';
 
@@ -63,6 +64,8 @@ export class DownloadsComponent implements OnInit {
     urlInputDisabled: boolean = false;
 
     sock = webSocket(this.wsApiURL)
+    wsSubscription?: Subscription
+    fetchingActiveDownload = false
 
     activeDLImage = ''
     activeDLChannel = ''
@@ -87,11 +90,10 @@ export class DownloadsComponent implements OnInit {
 
         this.wsMessage = msg.wsMessage
         this.serverLogs = msg.serverLogs
-
-        this.callFunction()
     }
 
     async ngOnInit() {
+        this.startPlaceholderRotation()
 
         this.sharedData.isPlaylist = this.sharedData.getIsPlaylist()
         this.sharedData.isDownloadActive = this.sharedData.getIsDownloadActive()
@@ -105,15 +107,16 @@ export class DownloadsComponent implements OnInit {
         this.populateVideoMetadata('init')
     }
 
-    async getDownloadStatus() {
-        this.sock.subscribe();
+    getDownloadStatus() {
+        //subscribe once - the server closes the socket when idle, so only re-subscribe after it has closed
+        if (!this.wsSubscription || this.wsSubscription.closed) {
+            this.wsSubscription = this.sock.subscribe({
+                next: msg => { this.updateLogs(JSON.stringify(msg)); /* console.log(JSON.stringify(msg)) */ },
+                error: err => { this.updateLogs('{"download": "web-socket connection is closed."}'); console.log('err:', err) },
+                complete: () => { this.wsCloseWithDownloadComplete() }
+            });
+        }
         this.sock.next(this.wsMessage);
-
-        this.sock.subscribe({
-            next: msg => { this.updateLogs(JSON.stringify(msg)); /* console.log(JSON.stringify(msg)) */ },
-            error: err => { this.updateLogs('{"download": "web-socket connection is closed."}'); console.log('err:', err) },
-            complete: () => { this.wsCloseWithDownloadComplete() }
-        });
         //this.sock.complete();
     }
 
@@ -126,25 +129,47 @@ export class DownloadsComponent implements OnInit {
     async updateLogs(message: string) {
         let isActiveDownload = this.sharedData.getIsDownloadActive()
 
-        if (!isActiveDownload) {
-            await this.getAndSaveActiveDownload()
-            this.populateVideoMetadata()
-            if (this.activeDownload !== null && this.activeDownload.title !== '') {
-                this.sharedData.setIsDownloadActive(true)
-            }
+        let log: any
+        try {
+            log = JSON.parse(message)
+        } catch (err) {
+            log = null
         }
+        if (log === null || typeof log !== 'object') {
+            console.error('error: invalid ws message.', message)
+            return
+        }
+        log.download = typeof log.download === 'string' ? log.download : ''
 
-        const log = JSON.parse(message)
+        //update the logs before any await, so they are applied in the order the messages arrive
         if (log.download === this.msg.downloadComplete) {
+            //the server sends completion only after the file is saved, so search can refresh right away;
+            //it repeats the message until the item is cleared - refresh once per completion
+            const alreadyCompleted = this.serverLogs === this.msg.downloadComplete
             this.serverLogs = log.download
             this.sharedData.setIsDownloadActive(false)
-            await setTimeout(() => {
+            if (!alreadyCompleted) {
                 this.sharedData.setRefreshAutoCompleteValue(true);
-            }, 500);
+            }
         } else if (this.serverLogs === this.msg.downloadComplete) {
             this.serverLogs = this.serverLogs + ' ' + log.download
         } else if (log.download.indexOf(this.msg.downloadInfoIdentifier) !== -1) {
             this.serverLogs = log.download
+        }
+
+        //only one active-download lookup at a time - ws messages keep arriving every second while it is in flight
+        if (!isActiveDownload && !this.fetchingActiveDownload) {
+            this.fetchingActiveDownload = true
+            try {
+                await this.getAndSaveActiveDownload()
+                //'init' keeps the server logs that were just applied
+                this.populateVideoMetadata('init')
+                if (this.activeDownload !== null && this.activeDownload.title !== '') {
+                    this.sharedData.setIsDownloadActive(true)
+                }
+            } finally {
+                this.fetchingActiveDownload = false
+            }
         }
     }
 
@@ -163,34 +188,42 @@ export class DownloadsComponent implements OnInit {
         this.serverLogs = this.msg.getInfo
 
         this.urlInputDisabled = true;
-        let metadataRequest = await this.GetMetadataRequest(this.options)
+        let metadataRequest = this.GetMetadataRequest(this.options)
         if (metadataRequest.Indicator === '') {
             this.showMessage('No URL or Identifier provided', 'error', 'error')
+            this.GetMediaCompleteResult(false)
             return
         }
 
-        let metadataResponse = await this.svcDownload.getMetadata(metadataRequest)
-        if (metadataResponse.status === 'failure') {
-            this.showMessage(metadataResponse.message, 'error', 'error')
-            //Completion Process
-            this.GetMediaCompleteResult(false)
-        } else {
-            let metadata = metadataResponse.data;
-            let isDownloadActive = this.sharedData.getIsDownloadActive()
-            if (!isDownloadActive) {
-                await this.getAndSaveActiveDownload()
-                this.populateVideoMetadata()
-                this.sharedData.setIsDownloadActive(true)
+        try {
+            let metadataResponse = await this.svcDownload.getMetadata(metadataRequest)
+            if (metadataResponse.status === 'failure') {
+                this.showMessage(metadataResponse.message, 'error', 'error')
+                //Completion Process
+                this.GetMediaCompleteResult(false)
+            } else {
+                let metadata = metadataResponse.data;
+                let isDownloadActive = this.sharedData.getIsDownloadActive()
+                if (!isDownloadActive) {
+                    await this.getAndSaveActiveDownload()
+                    this.populateVideoMetadata()
+                    this.sharedData.setIsDownloadActive(true)
+                }
+
+                //refresh autocomplete cache
+                this.sharedData.setRefreshAutoCompleteValue(true);
+
+                //trigger stats checker if all goes well
+                setTimeout(() => { this.getDownloadStatus(); }, 250);
+
+                //Completion Process
+                this.GetMediaCompleteResult()
             }
-
-            //refresh autocomplete cache
-            this.sharedData.setRefreshAutoCompleteValue(true);
-
-            //trigger stats checker if all goes well
-            setTimeout(() => { this.getDownloadStatus(); }, 250);
-
-            //Completion Process
-            this.GetMediaCompleteResult()
+        } catch (err) {
+            //request failed (api down, network error, invalid response) - reset the ui instead of leaving it stuck
+            console.error('error: failed to queue download.', err)
+            this.showMessage('Failed to queue download: ' + err, 'error', 'error')
+            this.GetMediaCompleteResult(false)
         }
     }
 
@@ -244,7 +277,7 @@ export class DownloadsComponent implements OnInit {
         if (calledFrom !== 'init') { this.serverLogs = ">>>waiting for server logs<<<" }
     }
 
-    async resetDownloadOptions() {
+    resetDownloadOptions() {
         this.options.GetAudioOnly = false
         this.options.GetSubs = false
         this.options.Identifier = ''
@@ -281,6 +314,8 @@ export class DownloadsComponent implements OnInit {
 
     ngOnDestroy() {
         // prevent memory leak when component destroyed
+        this.wsSubscription?.unsubscribe();
+        clearInterval(this.placeholderTimer);
         if (this.sock.closed) {
             this.sock.complete();
             this.sock.unsubscribe();
@@ -292,8 +327,9 @@ export class DownloadsComponent implements OnInit {
     //placeholders = ['Video or Playlist URL', 'youtube.com/watch?v=cXdwGt_xPCI', 'cXdwGt_xPCI', 'youtu.be/cXdwGt_xPCI?si=r7GvF9rndAtAkb0n', 'youtube.com/watch?v=cABfEaP2IHo&list=PL3uDtbb3OvDMn16H-YSIHpdntVMZ6V4WU', 'youtube.com/playlist?list=PL3uDtbb3OvDMn16H-YSIHpdntVMZ6V4WU', 'PL3uDtbb3OvDMn16H-YSIHpdntVMZ6V4WU'];
     placeholders = ['Video or Playlist URL', 'youtube.com/watch?v=videoId', 'videoId', 'youtu.be/videoId', 'youtube.com/watch?v=videoId&list=playlistId', 'youtube.com/playlist?list=playlistId', 'playlistId'];
     index = 0;
-    callFunction() {
-        setInterval(() => {
+    placeholderTimer?: ReturnType<typeof setInterval>;
+    startPlaceholderRotation() {
+        this.placeholderTimer = setInterval(() => {
             if (this.index === this.placeholders.length - 1) { this.index = 0; } //reset
             this.index = this.index + 1;
             this.urlPlaceholder = this.placeholders[this.index]

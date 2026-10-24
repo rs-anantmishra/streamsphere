@@ -2,6 +2,7 @@ package extractor
 
 import (
 	"errors"
+	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2/log"
@@ -90,6 +91,11 @@ func (s *service) ExtractIngestMedia() {
 
 			fileInfo := s.download.GetDownloadedMediaFileInfo(smi, fp)
 			dbResult := s.repository.SaveMediaContent(fileInfo)
+
+			//announce completion only after the db write, so clients can refresh search immediately
+			if !strings.HasPrefix(activeItem[0].StatusMessage, "Error:") {
+				activeItem[0].StatusMessage = "Download completed successfully."
+			}
 
 			//wait before next
 			duration := time.Second
