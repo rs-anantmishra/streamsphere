@@ -60,11 +60,25 @@ export class PlaylistDetailsComponent implements OnInit {
         this.isDarkMode = this.svcSharedData.getIsDarkMode()
         this.playlist = this.svcSharedData.getPlaylist();
 
+        //nothing is saved when this page is opened without picking a playlist first
+        if (!this.playlist?.info) {
+            this.router.navigate(['/playlists'])
+            return
+        }
+
         await this.loadPlaylistVideos();
-        this.selectActiveVideo();
-        this.prepareSelectedVideo();
+        //a playlist can be empty - the page still shows its title and an empty player
+        if (this.playlist.video_data.length > 0) {
+            this.selectActiveVideo();
+            this.prepareSelectedVideo();
+        }
         this.createPlayer();
         this.loaded = true
+    }
+
+    //nothing is playable until a playlist video is selected
+    get hasVideo(): boolean {
+        return this.selectedVideo.media_url !== ''
     }
 
     async loadPlaylistVideos() {
@@ -123,25 +137,29 @@ export class PlaylistDetailsComponent implements OnInit {
         window.location.reload()
     }
 
+    //always an array - an empty playlist, an empty response or a failed request all give no videos
     async getPlaylistsVideos(playlistId: number): Promise<VideoData[]> {
-        let result!: VideoData[];
         //check-cached
-        let playlist: SelectedPlaylist = await this.svcSharedData.getPlaylist();
-        if (playlist.video_data.length > 0) {
-            result = playlist.video_data
-        } else {
-            //get from service
-            let response = await this.svcPlaylists.getPlaylistVideos(playlistId);
-            if (response !== null && response.data.length > 0) {
-                result = response.data
-            } else if (response === null) {
+        const playlist: SelectedPlaylist = this.svcSharedData.getPlaylist();
+        if (playlist.video_data?.length > 0) {
+            return playlist.video_data
+        }
+
+        //get from service
+        try {
+            const response = await this.svcPlaylists.getPlaylistVideos(playlistId);
+            if (response === null) {
                 console.error('error: recieved null instead of playlist videos.')
             }
+            return response?.data ?? []
+        } catch (err) {
+            console.error('error: failed to get playlist videos.', err)
+            return []
         }
-        return result
     }
 
     async download(): Promise<void> {
+        if (!this.hasVideo) { return }
         (await this.svcPlaylists
             .download(this.selectedVideo.media_url))
             .subscribe(blob => downloadBlob(blob, this.selectedVideo.title + '.' + this.selectedVideo.extension))
