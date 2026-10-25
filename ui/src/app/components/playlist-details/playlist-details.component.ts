@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
@@ -38,7 +38,7 @@ import Plyr from 'plyr';
     templateUrl: './playlist-details.component.html',
     styleUrl: './playlist-details.component.scss'
 })
-export class PlaylistDetailsComponent implements OnInit {
+export class PlaylistDetailsComponent implements OnInit, OnDestroy {
 
     fieldsetVideoClass = ''
     isDarkMode!: boolean;
@@ -52,6 +52,8 @@ export class PlaylistDetailsComponent implements OnInit {
     loaded = false
 
     @ViewChild(ConfirmPopup) confirmPopup!: ConfirmPopup;
+    @ViewChild('playerVideo', { static: true }) playerVideo!: ElementRef<HTMLVideoElement>;
+    private destroyed = false
     constructor(private confirmationService: ConfirmationService, private messageService: MessageService, private svcSharedData: SharedDataService, 
         private svcPlaylists: PlaylistsService, private router: Router, readonly urlEncode: UrlEncode) {
     }
@@ -67,12 +69,20 @@ export class PlaylistDetailsComponent implements OnInit {
         }
 
         await this.loadPlaylistVideos();
+        //the page was left while the videos were loading - there is nothing to set up any more
+        if (this.destroyed) { return }
         //a playlist can be empty - the page still shows its title and an empty player
         if (this.playlist.video_data.length > 0) {
             this.selectActiveVideo();
         }
         this.createPlayer();
         this.loaded = true
+    }
+
+    //the player listens to the keyboard on the whole document, so it has to go when the page does
+    ngOnDestroy(): void {
+        this.destroyed = true
+        this.player?.destroy()
     }
 
     //nothing is playable until a playlist video is selected
@@ -116,7 +126,7 @@ export class PlaylistDetailsComponent implements OnInit {
     }
 
     createPlayer() {
-        this.player = new Plyr('#plyrId', { captions: { active: true }, keyboard: { global: true }, autoplay: true });
+        this.player = new Plyr(this.playerVideo.nativeElement, { captions: { active: true }, keyboard: { global: true }, autoplay: true });
         // use this for loading next item in playlist or repeating a single item
         // this.player.on('ended', function() { console.log('hi there')});
         this.playSelectedVideo()

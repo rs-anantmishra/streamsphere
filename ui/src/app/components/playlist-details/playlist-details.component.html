@@ -3,7 +3,7 @@
 </div>
 <div class="video-frame">
   <!-- the source and poster are set through the player (playSelectedVideo), which owns this element -->
-  <video id='plyrId' controls crossorigin playsinline class="player-video">
+  <video #playerVideo id='plyrId' controls crossorigin playsinline class="player-video">
     <!-- Fallback for browsers that don't support the <video> element -->
     <a [href]="selectedVideo.media_url" download>Download</a>
   </video>

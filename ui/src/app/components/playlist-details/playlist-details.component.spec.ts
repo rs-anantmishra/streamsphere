@@ -157,7 +157,7 @@ describe('PlaylistDetailsComponent', () => {
             videos[1].media_url = '/media/a #2 b.mp4';
             sharedData.setPlaylist(playlist(videos));
             await component.ngOnInit();
-            component.player = { source: undefined };
+            component.player = { source: undefined, destroy: () => { } };
         });
 
         it('switches the video through the player, without a reload', () => {
@@ -199,6 +199,39 @@ describe('PlaylistDetailsComponent', () => {
 
             expect(component.player.source).toBeUndefined();
             expect(component.selectedVideo.video_id).toBe(1);
+        });
+    });
+
+    describe('player lifecycle', () => {
+        it('creates the player on its own video element and destroys it with the page', () => {
+            (component.createPlayer as jasmine.Spy).and.callThrough();
+
+            component.createPlayer();
+            const player = component.player;
+            const destroy = spyOn(player, 'destroy').and.callThrough();
+
+            expect(player.media).toBe(component.playerVideo.nativeElement);
+
+            fixture.destroy();
+            expect(destroy).toHaveBeenCalledTimes(1);
+        });
+
+        it('can be destroyed before a player exists', () => {
+            expect(() => component.ngOnDestroy()).not.toThrow();
+        });
+
+        it('sets nothing up when the page is left while the videos are loading', async () => {
+            sharedData.setPlaylist(playlist([]));
+            let finish!: (value: any) => void;
+            spyOn(playlistsSvc, 'getPlaylistVideos').and.returnValue(new Promise(resolve => finish = resolve));
+
+            const loading = component.ngOnInit();
+            component.ngOnDestroy();
+            finish({ data: [video(1, 1)] });
+            await loading;
+
+            expect(component.createPlayer).not.toHaveBeenCalled();
+            expect(component.loaded).toBeFalse();
         });
     });
 });
