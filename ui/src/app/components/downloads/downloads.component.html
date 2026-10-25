@@ -55,12 +55,12 @@
       @if (this.queuedItems !== null && this.queuedItems.length > 0) {
         <div>
           @for (item of this.queuedItems; track item) {
-            <app-simplecard [metadata]="item"
+            <app-simplecard [metadata]="item" [navigate]="false" (cardClick)="openVideo($event.video_id)"
             class="sidebar-cards"></app-simplecard>
           }
         </div>
       } @else {
-        <app-simplecard class="sidebar-cards" [metadata]="nilMetadata"></app-simplecard>
+        <app-simplecard class="sidebar-cards" [metadata]="nilMetadata" [navigate]="false"></app-simplecard>
       }
     </p-scrollPanel>
   </p-drawer>

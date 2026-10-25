@@ -147,6 +147,32 @@ describe('DownloadsComponent status events', () => {
         expect(navigate).toHaveBeenCalledWith(['videos', 'play']);
     });
 
+    it('opens a queued item with its full record, and ignores the placeholder id', async () => {
+        const videosSvc = TestBed.inject(VideosService);
+        const video: any = { video_id: 31 };
+        const get = spyOn(videosSvc, 'getContentById').and.resolveTo({ data: [video] } as any);
+        spyOn(sharedData, 'setPlayVideo');
+        const navigate = spyOn(TestBed.inject(Router), 'navigate').and.resolveTo(true);
+
+        await component.openVideo(-1);
+        expect(get).not.toHaveBeenCalled();
+
+        await component.openVideo(31);
+        expect(get).toHaveBeenCalledWith(31);
+        expect(sharedData.setPlayVideo).toHaveBeenCalledWith(video);
+        expect(navigate).toHaveBeenCalledWith(['videos', 'play']);
+    });
+
+    it('tells the user when a queued item is not in the library', async () => {
+        spyOn(TestBed.inject(VideosService), 'getContentById').and.resolveTo({ data: null } as any);
+        const navigate = spyOn(TestBed.inject(Router), 'navigate').and.resolveTo(true);
+
+        await component.openVideo(31);
+
+        expect(messageService.add).toHaveBeenCalledTimes(1);
+        expect(navigate).not.toHaveBeenCalled();
+    });
+
     it('does not open the video page while a download is running or before any item is known', () => {
         expect(component.canPlayActive).toBeFalse();
         component.handleStatusEvent(statusEvent({ state: 'downloading', video_id: 7 }));

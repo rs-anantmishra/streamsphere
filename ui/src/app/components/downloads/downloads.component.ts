@@ -150,7 +150,13 @@ export class DownloadsComponent implements OnInit, OnDestroy {
 
     async playActive() {
         if (!this.canPlayActive) { return }
-        const result = await this.svcVideos.getContentById(this.activeDLVideoId)
+        await this.openVideo(this.activeDLVideoId)
+    }
+
+    //the status and queue lists only carry a few fields, so the video page gets the full record
+    async openVideo(videoId: number) {
+        if (!(videoId > 0)) { return }
+        const result = await this.svcVideos.getContentById(videoId)
         if (result.data == null || result.data.length === 0) {
             this.showMessage('This video is not in the library.', 'error', 'error')
             return
