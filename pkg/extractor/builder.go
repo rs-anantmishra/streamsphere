@@ -295,10 +295,16 @@ func GetPlaylistFilepath(fp e.Filepath, fType int) string {
 	return result
 }
 
+// urlArgs starts every yt-dlp call. The app's database is the record of what is downloaded, so the user's own
+// yt-dlp config must not make yt-dlp skip a video it already listed in a download archive (it then prints nothing).
+func urlArgs(url string) []string {
+	return []string{"\"" + url + "\"", "--no-download-archive"}
+}
+
 func cmdBuilderMetadata(url string) (string, string, int) {
 
 	var args []string
-	args = append(args, "\""+url+"\"")
+	args = append(args, urlArgs(url)...)
 	totalItems := 0
 
 	bo := BuilderOptions()
@@ -328,7 +334,7 @@ func cmdBuilderMetadata(url string) (string, string, int) {
 func cmdBuilderDownload(url string, savedInfo e.SavedInfo) (string, string) {
 
 	var args []string
-	args = append(args, "\""+url+"\"")
+	args = append(args, urlArgs(url)...)
 
 	//this is to get rid of the problem with special chars that windows does not support
 	//while maintaining the directory structure and aethetics for fs access to your data
@@ -369,7 +375,7 @@ func cmdBuilderDownload(url string, savedInfo e.SavedInfo) (string, string) {
 func cmdBuilderSubtitles(url string, savedInfo e.SavedInfo) (string, string) {
 
 	var args []string
-	args = append(args, "\""+url+"\"")
+	args = append(args, urlArgs(url)...)
 
 	//this is to get rid of the problem with special chars that windows does not support
 	//while maintaining the directory structure and aethetics for fs access to your data
@@ -409,7 +415,7 @@ func cmdBuilderSubtitles(url string, savedInfo e.SavedInfo) (string, string) {
 func cmdBuilderThumbnails(url string, savedInfo e.SavedInfo) (string, string) {
 
 	var args []string
-	args = append(args, "\""+url+"\"")
+	args = append(args, urlArgs(url)...)
 
 	//this is to get rid of the problem with special chars that windows does not support
 	//while maintaining the directory structure and aethetics for fs access to your data
