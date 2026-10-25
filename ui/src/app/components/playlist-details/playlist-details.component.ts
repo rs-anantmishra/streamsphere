@@ -59,15 +59,26 @@ export class PlaylistDetailsComponent implements OnInit {
     async ngOnInit(): Promise<void> {
         this.isDarkMode = this.svcSharedData.getIsDarkMode()
         this.playlist = this.svcSharedData.getPlaylist();
-        
+
+        await this.loadPlaylistVideos();
+        this.selectActiveVideo();
+        this.prepareSelectedVideo();
+        this.createPlayer();
+        this.loaded = true
+    }
+
+    async loadPlaylistVideos() {
         //get playlist videos
         this.playlist.video_data = await this.getPlaylistsVideos(this.playlist.info.playlist_id);
 
         //sort playlist
         this.playlist.video_data.sort((a, b) => a.playlist_video_index - b.playlist_video_index)
 
-        //assign selected video
         this.playlistVideos = this.playlist.video_data
+    }
+
+    selectActiveVideo() {
+        //assign selected video
         if (this.playlist.active_video === -1) {
             //set 1st video as active 
             this.playlist.active_video = this.playlist.video_data[0].video_id
@@ -80,7 +91,9 @@ export class PlaylistDetailsComponent implements OnInit {
                 }
             });
         }
-        
+    }
+
+    prepareSelectedVideo() {
         this.selectedVideo.thumbnail = this.selectedVideo.thumbnail
         this.selectedVideo.media_url = this.urlEncode.encodedUrl(this.selectedVideo.media_url)
         this.selectedVideo.webpage_url = this.urlEncode.encodedUrl(this.selectedVideo.webpage_url)
@@ -88,10 +101,12 @@ export class PlaylistDetailsComponent implements OnInit {
         //linkify
         this.selectedVideo.description = cp1252_to_utf8(this.selectedVideo.description)
         // this.selectedVideo.description = this.linkify(this.selectedVideo.description)
+    }
+
+    createPlayer() {
         this.player = new Plyr('#plyrId', { captions: { active: true }, keyboard: { global: true }, autoplay: true });
         // use this for loading next item in playlist or repeating a single item
         // this.player.on('ended', function() { console.log('hi there')});
-        this.loaded = true
     }
 
     changeContent(video_id: number) {
