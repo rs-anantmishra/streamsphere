@@ -114,6 +114,7 @@ export class VideoDetailsComponent implements OnInit, OnDestroy {
     }
 
     confirm(event: Event, contentId: number) {
-        confirmDelete(event, contentId, id => this.svcVideos.deleteVideoById(id), this.confirmationService, this.messageService, this.router);
+        confirmDelete(event, contentId, id => this.svcVideos.deleteVideoById(id), this.confirmationService, this.messageService, this.router,
+            { redirectTo: '/videos' });
     }
 }

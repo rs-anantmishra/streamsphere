@@ -210,6 +210,27 @@ export class PlaylistDetailsComponent implements OnInit, OnDestroy {
     }
 
     confirm(event: Event, contentId: number) {
-        confirmDelete(event, contentId, id => this.svcPlaylists.deleteVideoById(id), this.confirmationService, this.messageService, this.router);
+        confirmDelete(event, contentId, id => this.svcPlaylists.deleteVideoById(id), this.confirmationService, this.messageService, this.router,
+            { onDeleted: id => this.removeDeletedVideo(id), redirectTo: '/playlists' });
+    }
+
+    //after a delete the page stays on the playlist and moves to the neighbouring video: the next one,
+    //or the previous one when the last was deleted. With no other video there is nothing to stay for.
+    removeDeletedVideo(videoId: number): boolean {
+        const videos = this.playlist.video_data
+        const at = videos.findIndex(item => item.video_id === videoId)
+        if (at === -1 || videos.length < 2) { return false }
+
+        const remaining = videos.filter(item => item.video_id !== videoId)
+        const neighbour = remaining[Math.min(at, remaining.length - 1)]
+        this.playlist.video_data = remaining
+        this.playlistVideos = remaining
+        this.playlist.active_video = neighbour.video_id
+        //so a reload or Back no longer shows the deleted video
+        this.svcSharedData.setPlaylist(this.playlist)
+
+        this.selectVideo(neighbour)
+        this.playSelectedVideo()
+        return true
     }
 }

@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, fakeAsync, flushMicrotasks, tick } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { throwError } from 'rxjs';
@@ -114,5 +114,36 @@ describe('VideoDetailsComponent', () => {
         await component.download();
 
         expect(toast).toHaveBeenCalledWith(jasmine.objectContaining({ severity: 'error', detail: 'Download failed' }));
+    });
+
+    describe('deleting the video', () => {
+        function confirmDeleteRightAway() {
+            spyOn(fixture.debugElement.injector.get(ConfirmationService), 'confirm').and.callFake((options: any) => options.accept());
+        }
+
+        it('goes to the videos page 3 seconds after the delete', fakeAsync(() => {
+            confirmDeleteRightAway();
+            (fixture.debugElement.injector.get(VideosService) as any).deleteVideoById = () => Promise.resolve({ data: true });
+            const navigate = spyOn(router, 'navigate').and.resolveTo(true);
+
+            component.confirm({ target: null } as any, 1);
+            flushMicrotasks();
+            expect(navigate).not.toHaveBeenCalled();
+            tick(3000);
+
+            expect(navigate).toHaveBeenCalledOnceWith(['/videos']);
+        }));
+
+        it('stays on the page when the delete fails', fakeAsync(() => {
+            confirmDeleteRightAway();
+            (fixture.debugElement.injector.get(VideosService) as any).deleteVideoById = () => Promise.resolve({ data: false });
+            const navigate = spyOn(router, 'navigate').and.resolveTo(true);
+
+            component.confirm({ target: null } as any, 1);
+            flushMicrotasks();
+            tick(3000);
+
+            expect(navigate).not.toHaveBeenCalled();
+        }));
     });
 });

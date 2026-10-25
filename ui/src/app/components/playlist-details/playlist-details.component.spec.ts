@@ -1,5 +1,6 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, fakeAsync, flushMicrotasks, tick } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
+import { ConfirmationService } from 'primeng/api';
 
 import { PlaylistDetailsComponent } from './playlist-details.component';
 import { SharedDataService } from '../../services/shared-data.service';
@@ -267,5 +268,90 @@ describe('PlaylistDetailsComponent', () => {
             expect([light, dark]).toEqual(['fieldset-playlist-content-light', 'fieldset-playlist-content-dark']);
             expect(read).not.toHaveBeenCalled();
         });
+    });
+
+    describe('deleting a video', () => {
+        async function openPlaylist(ids: number[]) {
+            sharedData.setPlaylist(playlist(ids.map((id, i) => video(id, i + 1))));
+            await component.ngOnInit();
+            component.player = { source: undefined, destroy: () => { } };
+        }
+
+        it('moves to the next video and drops the deleted one', async () => {
+            await openPlaylist([1, 2, 3]);
+
+            expect(component.removeDeletedVideo(2)).toBeTrue();
+
+            expect(component.playlistVideos.map(v => v.video_id)).toEqual([1, 3]);
+            expect(component.selectedVideo.video_id).toBe(3);
+            expect(component.player.source.sources[0].src).toBe('/media/3.mp4');
+        });
+
+        it('moves to the new first video when the first one is deleted', async () => {
+            await openPlaylist([1, 2, 3]);
+
+            component.removeDeletedVideo(1);
+
+            expect(component.playlistVideos.map(v => v.video_id)).toEqual([2, 3]);
+            expect(component.selectedVideo.video_id).toBe(2);
+        });
+
+        it('moves to the previous video when the last one is deleted', async () => {
+            await openPlaylist([1, 2, 3]);
+
+            component.removeDeletedVideo(3);
+
+            expect(component.playlistVideos.map(v => v.video_id)).toEqual([1, 2]);
+            expect(component.selectedVideo.video_id).toBe(2);
+        });
+
+        it('saves the playlist without the deleted video, so a reload does not bring it back', async () => {
+            await openPlaylist([1, 2, 3]);
+
+            component.removeDeletedVideo(2);
+
+            const saved = sharedData.getPlaylist();
+            expect(saved.video_data.map(v => v.video_id)).toEqual([1, 3]);
+            expect(saved.active_video).toBe(3);
+        });
+
+        it('does not take over when it is the only video, or one it does not know', async () => {
+            await openPlaylist([1]);
+
+            expect(component.removeDeletedVideo(1)).toBeFalse();
+            expect(component.removeDeletedVideo(99)).toBeFalse();
+            expect(component.playlistVideos.map(v => v.video_id)).toEqual([1]);
+        });
+
+        it('stays on the page after the delete when other videos are left', fakeAsync(() => {
+            const confirmation = fixture.debugElement.injector.get(ConfirmationService);
+            spyOn(confirmation, 'confirm').and.callFake((options: any) => options.accept());
+            spyOn(playlistsSvc, 'deleteVideoById').and.resolveTo({ data: true } as any);
+            sharedData.setPlaylist(playlist([video(1, 1), video(2, 2)]));
+            component.playlist = sharedData.getPlaylist();
+            component.playlistVideos = component.playlist.video_data;
+            component.selectedVideo = component.playlist.video_data[0];
+            component.player = { source: undefined, destroy: () => { } };
+
+            component.confirm({ target: null } as any, 1);
+            flushMicrotasks();
+            tick(3000);
+
+            expect(navigate).not.toHaveBeenCalled();
+            expect(component.selectedVideo.video_id).toBe(2);
+        }));
+
+        it('goes to the playlists page after deleting the only video', fakeAsync(() => {
+            const confirmation = fixture.debugElement.injector.get(ConfirmationService);
+            spyOn(confirmation, 'confirm').and.callFake((options: any) => options.accept());
+            spyOn(playlistsSvc, 'deleteVideoById').and.resolveTo({ data: true } as any);
+            component.playlist = playlist([video(1, 1)]);
+
+            component.confirm({ target: null } as any, 1);
+            flushMicrotasks();
+            tick(3000);
+
+            expect(navigate).toHaveBeenCalledOnceWith(['/playlists']);
+        }));
     });
 });
