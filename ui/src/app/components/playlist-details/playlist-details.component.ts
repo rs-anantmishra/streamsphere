@@ -70,7 +70,6 @@ export class PlaylistDetailsComponent implements OnInit {
         //a playlist can be empty - the page still shows its title and an empty player
         if (this.playlist.video_data.length > 0) {
             this.selectActiveVideo();
-            this.prepareSelectedVideo();
         }
         this.createPlayer();
         this.loaded = true
@@ -92,19 +91,18 @@ export class PlaylistDetailsComponent implements OnInit {
     }
 
     selectActiveVideo() {
-        //assign selected video
-        if (this.playlist.active_video === -1) {
-            //set 1st video as active 
-            this.playlist.active_video = this.playlist.video_data[0].video_id
-            this.selectedVideo = this.playlist.video_data[0]
-        } else {
-            //find active-video and assign it
-            this.playlist.video_data.forEach((item) => {
-                if (item.video_id === this.playlist.active_video) {
-                    this.selectedVideo = item
-                }
-            });
-        }
+        //the first video is the default, and the fallback when the saved one is no longer in the playlist
+        const videos = this.playlist.video_data
+        const active = videos.find(item => item.video_id === this.playlist.active_video) ?? videos[0]
+        this.playlist.active_video = active.video_id
+        this.selectVideo(active)
+    }
+
+    //the selected video is a copy: prepareSelectedVideo encodes its urls, and that must never touch the
+    //cached video (it is saved back to storage, and encoding twice breaks urls containing # or %)
+    selectVideo(video: VideoData) {
+        this.selectedVideo = Object.assign(new VideoData(), video)
+        this.prepareSelectedVideo()
     }
 
     prepareSelectedVideo() {
@@ -121,20 +119,28 @@ export class PlaylistDetailsComponent implements OnInit {
         this.player = new Plyr('#plyrId', { captions: { active: true }, keyboard: { global: true }, autoplay: true });
         // use this for loading next item in playlist or repeating a single item
         // this.player.on('ended', function() { console.log('hi there')});
+        this.playSelectedVideo()
+    }
+
+    //the source and poster are set only through the player, which owns the media element
+    private playSelectedVideo() {
+        if (!this.hasVideo) { return }
+        this.player.source = {
+            type: 'video',
+            sources: [{ src: this.selectedVideo.media_url, type: 'video/webm' }],
+            poster: this.selectedVideo.thumbnail
+        };
     }
 
     changeContent(video_id: number) {
-        this.player.pause()
-        this.loaded = false
+        const video = this.playlist.video_data.find(item => item.video_id === video_id)
+        if (!video || video_id === this.selectedVideo.video_id) { return }
+
         this.playlist.active_video = video_id
         this.svcSharedData.setPlaylist(this.playlist)
 
-        this.playlist.video_data.forEach((item) => {
-            if (item.video_id === this.playlist.active_video) {
-                this.selectedVideo = item
-            }
-        });
-        window.location.reload()
+        this.selectVideo(video)
+        this.playSelectedVideo()
     }
 
     //always an array - an empty playlist, an empty response or a failed request all give no videos

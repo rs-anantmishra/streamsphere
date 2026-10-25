@@ -126,6 +126,15 @@ describe('PlaylistDetailsComponent', () => {
             expect(component.hasVideo).toBeFalse();
         });
 
+        it('falls back to the first video when the saved active video is no longer in the playlist', async () => {
+            sharedData.setPlaylist(playlist([video(1, 1), video(2, 2)], 99));
+
+            await component.ngOnInit();
+
+            expect(component.selectedVideo.video_id).toBe(1);
+            expect(component.playlist.active_video).toBe(1);
+        });
+
         it('sorts the videos and selects the first one', async () => {
             sharedData.setPlaylist(playlist([video(2, 2), video(1, 1)]));
 
@@ -137,6 +146,59 @@ describe('PlaylistDetailsComponent', () => {
             expect(component.selectedVideo.video_id).toBe(1);
             expect(component.hasVideo).toBeTrue();
             expect(fixture.nativeElement.textContent).not.toContain('This playlist has no videos.');
+        });
+    });
+
+    describe('changeContent', () => {
+        let videos: VideoData[];
+
+        beforeEach(async () => {
+            videos = [video(1, 1), video(2, 2)];
+            videos[1].media_url = '/media/a #2 b.mp4';
+            sharedData.setPlaylist(playlist(videos));
+            await component.ngOnInit();
+            component.player = { source: undefined };
+        });
+
+        it('switches the video through the player, without a reload', () => {
+            component.changeContent(2);
+
+            expect(component.selectedVideo.video_id).toBe(2);
+            expect(component.player.source.sources[0].src).toBe('/media/a %232 b.mp4');
+            expect(component.player.source.poster).toBe('/media/2.webp');
+            expect(component.loaded).toBeTrue();
+        });
+
+        it('saves the new active video so a reload restores it', () => {
+            component.changeContent(2);
+
+            expect(sharedData.getPlaylist().active_video).toBe(2);
+        });
+
+        it('encodes the url once however often the user switches back and forth', () => {
+            component.changeContent(2);
+            component.changeContent(1);
+            component.changeContent(2);
+            component.changeContent(1);
+            component.changeContent(2);
+
+            expect(component.player.source.sources[0].src).toBe('/media/a %232 b.mp4');
+            expect(component.selectedVideo.media_url).toBe('/media/a %232 b.mp4');
+        });
+
+        it('leaves the cached videos, which are saved back to storage, as they came', () => {
+            component.changeContent(2);
+
+            expect(component.playlist.video_data.find(v => v.video_id === 2)!.media_url).toBe('/media/a #2 b.mp4');
+            expect(sharedData.getPlaylist().video_data.find(v => v.video_id === 2)!.media_url).toBe('/media/a #2 b.mp4');
+        });
+
+        it('ignores an unknown video and the one already selected', () => {
+            component.changeContent(99);
+            component.changeContent(1);
+
+            expect(component.player.source).toBeUndefined();
+            expect(component.selectedVideo.video_id).toBe(1);
         });
     });
 });

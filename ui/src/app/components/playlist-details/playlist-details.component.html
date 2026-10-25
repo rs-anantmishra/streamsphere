@@ -2,8 +2,8 @@
   <a routerLink="/home" class="p-button font-bold" size="small">Router</a>
 </div>
 <div class="video-frame">
-  <video id='plyrId' controls crossorigin playsinline class="player-video" poster="{{selectedVideo.thumbnail}}">
-    <source [src]="this.selectedVideo.media_url" type="video/webm" size="1080">
+  <!-- the source and poster are set through the player (playSelectedVideo), which owns this element -->
+  <video id='plyrId' controls crossorigin playsinline class="player-video">
     <!-- Fallback for browsers that don't support the <video> element -->
     <a [href]="selectedVideo.media_url" download>Download</a>
   </video>
