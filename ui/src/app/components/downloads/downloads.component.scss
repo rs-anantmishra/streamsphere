@@ -78,7 +78,8 @@
     flex-direction: column;
 }
 
-:host ::ng-deep .queued-box {
+//the drawer is attached to body, so it is no longer inside :host
+::ng-deep .queued-box {
     min-width: 436px;
 }
 
