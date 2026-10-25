@@ -400,7 +400,7 @@ func (r *repository) DeleteContentById(contentId int) (bool, string, string, err
 	)
 
 	//get Video Details - youtube video id
-	if err := r.db.QueryRow(q.GetVideoDeleteDetails, contentId).Scan(&ytVideoId, &contentFilePath, &thumbnailFilePath); err != nil {
+	if err := r.db.QueryRow(q.GetVideoDeleteDetails, contentId).Scan(&ytVideoId, &thumbnailFilePath, &contentFilePath); err != nil {
 		if err == sql.ErrNoRows {
 			return isDeleteSuccessful, contentFilePath, thumbnailFilePath, fmt.Errorf("contentId %d: unknown id", contentId)
 		}
