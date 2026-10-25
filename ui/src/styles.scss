@@ -77,3 +77,15 @@
 html {
     scroll-behavior: smooth;
   }
+//Plyr's seek bar is wider than its slot and ran into the time counter; the counter is a badge with room around it
+.plyr__controls .plyr__progress__container {
+    margin-right: 16px;
+}
+
+.plyr__controls .plyr__time--current {
+    background: var(--p-primary-color, #3b82f6);
+    color: var(--p-primary-contrast-color, #fff);
+    border-radius: 6px;
+    padding: 2px 8px;
+    font-weight: 600;
+}
