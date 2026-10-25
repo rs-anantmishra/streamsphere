@@ -1,5 +1,5 @@
-import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, ElementRef, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
+import { CommonModule, DOCUMENT } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { SharedDataService } from '../../services/shared-data.service';
@@ -54,6 +54,7 @@ export class PlaylistDetailsComponent implements OnInit, OnDestroy {
     @ViewChild(ConfirmPopup) confirmPopup!: ConfirmPopup;
     @ViewChild('playerVideo', { static: true }) playerVideo!: ElementRef<HTMLVideoElement>;
     private destroyed = false
+    #document = inject(DOCUMENT);
     constructor(private confirmationService: ConfirmationService, private messageService: MessageService, private svcSharedData: SharedDataService, 
         private svcPlaylists: PlaylistsService, private router: Router, readonly urlEncode: UrlEncode) {
     }
@@ -183,7 +184,8 @@ export class PlaylistDetailsComponent implements OnInit, OnDestroy {
 
     getClass(video: VideoData): string {
         let result = ''
-        this.isDarkMode = this.svcSharedData.getIsDarkMode()
+        //the header marks the theme on <html>; this runs for every item on every change detection, so no storage reads here
+        this.isDarkMode = this.#document.documentElement.classList.contains('app-dark')
         if (this.isDarkMode) {
             result = 'fieldset-playlist-content-dark'
         } else if (!this.isDarkMode) {

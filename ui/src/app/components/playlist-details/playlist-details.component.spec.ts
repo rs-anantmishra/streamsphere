@@ -234,4 +234,38 @@ describe('PlaylistDetailsComponent', () => {
             expect(component.loaded).toBeFalse();
         });
     });
+
+    describe('getClass', () => {
+        const first = video(1, 1);
+        const second = video(2, 2);
+
+        beforeEach(() => {
+            component.selectedVideo = first;
+        });
+
+        afterEach(() => document.documentElement.classList.remove('app-dark'));
+
+        it('gives the light classes, with the selected video marked, when the page is light', () => {
+            expect(component.getClass(first)).toBe('fieldset-playlist-content-light selected-video-light');
+            expect(component.getClass(second)).toBe('fieldset-playlist-content-light');
+        });
+
+        it('gives the dark classes, with the selected video marked, when the header set the dark theme', () => {
+            document.documentElement.classList.add('app-dark');
+
+            expect(component.getClass(first)).toBe('fieldset-playlist-content-dark selected-video-dark');
+            expect(component.getClass(second)).toBe('fieldset-playlist-content-dark');
+        });
+
+        it('follows a theme switch without reading storage', () => {
+            const read = spyOn(Storage.prototype, 'getItem').and.callThrough();
+
+            const light = component.getClass(second);
+            document.documentElement.classList.add('app-dark');
+            const dark = component.getClass(second);
+
+            expect([light, dark]).toEqual(['fieldset-playlist-content-light', 'fieldset-playlist-content-dark']);
+            expect(read).not.toHaveBeenCalled();
+        });
+    });
 });
