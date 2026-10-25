@@ -11,7 +11,7 @@
           <input type="text" pInputText [placeholder]="urlPlaceholder"
             [ngModel]="this.options.Identifier | removePrefix"
             (ngModelChange)="this.options.Identifier=$event" [disabled]="urlInputDisabled" />
-          <button type="button" pButton label="Get" [loading]="loading" (click)="GetMedia()"></button>
+          <button type="button" pButton label="Get" [loading]="loading" [disabled]="loading" (click)="GetMedia()"></button>
         </p-inputGroup>
       </div>
       <div class="options-container">
@@ -30,7 +30,8 @@
     <p-fieldset legend="Information" [toggleable]="false">
       <div class="information-box">
         <div>
-          <img [src]="this.urlEncode.encodedUrl(activeDLImage)" class="info-image-size" />
+          <img [src]="this.urlEncode.encodedUrl(activeDLImage)" class="info-image-size"
+            [class.info-image-link]="canPlayActive" (click)="playActive()" />
         </div>
         <div class="information-details">
           <div class="download-details">
@@ -48,18 +49,18 @@
 <p-toast />
 
 <div>
-  <p-drawer [(visible)]="sidebarVisible" styleClass="queued-box">
-    <p-scrollPanel class="queued-scrollable" [style]="{ width: '100%', height: 'calc(100vh - 150px)' }">
+  <p-drawer [(visible)]="sidebarVisible" (onHide)="stopQueuePolling()" styleClass="queued-box" appendTo="body">
+    <p-scrollPanel #queueScroll class="queued-scrollable" [style]="{ width: '100%', height: 'calc(100vh - 150px)' }">
       <h2 class="queued-heading">Queued Downloads</h2>
       @if (this.queuedItems !== null && this.queuedItems.length > 0) {
         <div>
           @for (item of this.queuedItems; track item) {
-            <app-simplecard [metadata]="item"
+            <app-simplecard [metadata]="item" [navigate]="false" (cardClick)="openVideo($event.video_id)"
             class="sidebar-cards"></app-simplecard>
           }
         </div>
       } @else {
-        <app-simplecard class="sidebar-cards" [metadata]="nilMetadata"></app-simplecard>
+        <app-simplecard class="sidebar-cards" [metadata]="nilMetadata" [navigate]="false"></app-simplecard>
       }
     </p-scrollPanel>
   </p-drawer>

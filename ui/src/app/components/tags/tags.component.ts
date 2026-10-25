@@ -6,7 +6,7 @@ import { SharedDataService } from '../../services/shared-data.service';
 @Component({
     selector: 'app-tags',
     imports: [RouterModule, ButtonModule],
-    providers: [Router, SharedDataService],
+    providers: [SharedDataService],
     templateUrl: './tags.component.html',
     styleUrl: './tags.component.scss'
 })

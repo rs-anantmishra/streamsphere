@@ -130,17 +130,7 @@
                         ],
                         "styles": [
                             "node_modules/plyr/dist/plyr.css",
-                            "src/styles.scss",
-                            {
-                                "input": "themes/aura-dark-blue/theme.css",
-                                "bundleName": "theme-dark",
-                                "inject": false
-                            },
-                            {
-                              "input": "themes/aura-light-blue/theme.css",
-                              "bundleName": "theme-light",
-                              "inject": false
-                            }
+                            "src/styles.scss"
                         ],
                         "scripts": [
                             "node_modules/plyr/dist/plyr.js"

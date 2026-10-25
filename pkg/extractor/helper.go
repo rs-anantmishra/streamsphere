@@ -20,9 +20,8 @@ func falsifyQueueAlive() {
 
 func clearActiveItem(activeItem []g.DownloadStatus) []g.DownloadStatus {
 
-	//empty out active item
+	//empty out active item; the id and title fields stay so the status page can still name the last download
 	activeItem[0].VideoURL = ""
-	activeItem[0].VideoId = 0
 	activeItem[0].StatusMessage = ""
 	activeItem[0].State = 0
 

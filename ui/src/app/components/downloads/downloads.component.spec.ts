@@ -1,0 +1,288 @@
+import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
+import { Router } from '@angular/router';
+import { Subject } from 'rxjs';
+import { MessageService } from 'primeng/api';
+
+import { DownloadsComponent } from './downloads.component';
+import { DownloadService } from '../../services/download.service';
+import { FilesService } from '../../services/files.service';
+import { VideosService } from '../../services/videos.service';
+import { SharedDataService } from '../../services/shared-data.service';
+import { Messages } from '../../constants/messages';
+import { UrlEncode } from '../../utilities/url-encode';
+import { DownloadStatusEvent } from '../../interfaces/download-status-event';
+
+function statusEvent(overrides: Partial<DownloadStatusEvent>): DownloadStatusEvent {
+    return { download: '', video_url: '', state: 'downloading', video_id: 1, title: '', channel: '', thumbnail: '', ...overrides };
+}
+
+describe('DownloadsComponent status events', () => {
+    let fixture: ComponentFixture<DownloadsComponent>;
+    let component: DownloadsComponent;
+    let events: Subject<DownloadStatusEvent>;
+    let sharedData: SharedDataService;
+    let messageService: MessageService;
+
+    beforeEach(() => {
+        events = new Subject<DownloadStatusEvent>();
+        TestBed.configureTestingModule({ imports: [DownloadsComponent] });
+        // the component provides its own services, so they are replaced at component level
+        TestBed.overrideComponent(DownloadsComponent, {
+            set: {
+                providers: [
+                    { provide: DownloadService, useValue: { statusEvents: () => events, getQueuedItems: () => Promise.resolve([]) } },
+                    { provide: FilesService, useValue: {} },
+                    MessageService, Messages, UrlEncode
+                ]
+            }
+        });
+        fixture = TestBed.createComponent(DownloadsComponent);
+        component = fixture.componentInstance;
+        sharedData = TestBed.inject(SharedDataService);
+        messageService = fixture.debugElement.injector.get(MessageService);
+        spyOn(sharedData, 'setRefreshAutoCompleteValue');
+        spyOn(messageService, 'add');
+    });
+
+    afterEach(() => fixture.destroy());
+
+    it('renders title, channel and progress from a downloading event', () => {
+        component.handleStatusEvent(statusEvent({
+            download: '[download]  45.3% of  229.20MiB at 19.19MiB/s ETA 00:10',
+            title: 'A Title', channel: 'A Channel', thumbnail: 'thumb.jpg'
+        }));
+
+        expect(component.activeDLTitle).toBe('A Title');
+        expect(component.activeDLChannel).toBe('A Channel');
+        expect(component.activeDLImage).toBe('thumb.jpg');
+        expect(component.serverLogs).toBe('[download]  45.3% of  229.20MiB at 19.19MiB/s ETA 00:10');
+        expect(component.downloadPercent).toBe(45.3);
+    });
+
+    it('keeps the last progress line when a warning arrives while downloading', () => {
+        component.handleStatusEvent(statusEvent({ download: '[download]  45.3% of  229.20MiB at 19.19MiB/s ETA 00:10' }));
+        component.handleStatusEvent(statusEvent({ download: 'WARNING: [youtube] No supported JavaScript runtime could be found.' }));
+        component.handleStatusEvent(statusEvent({ download: '' }));
+
+        expect(component.serverLogs).toBe('[download]  45.3% of  229.20MiB at 19.19MiB/s ETA 00:10');
+        expect(component.downloadPercent).toBe(45.3);
+    });
+
+    it('refreshes search once per completed video', () => {
+        component.handleStatusEvent(statusEvent({ state: 'completed', video_id: 7, download: 'Download completed successfully.' }));
+        component.handleStatusEvent(statusEvent({ state: 'completed', video_id: 7, download: 'Download completed successfully.' }));
+        component.handleStatusEvent(statusEvent({ state: 'completed', video_id: 8, download: 'Download completed successfully.' }));
+
+        expect(sharedData.setRefreshAutoCompleteValue).toHaveBeenCalledTimes(2);
+        expect(component.downloadPercent).toBe(100);
+    });
+
+    it('refreshes search once when saving goes idle without a completed event', () => {
+        component.handleStatusEvent(statusEvent({ state: 'saving', video_id: 5, download: '[download] Saving file to library...' }));
+        component.handleStatusEvent(statusEvent({ state: 'idle', video_id: 0 }));
+        component.handleStatusEvent(statusEvent({ state: 'idle', video_id: 0 }));
+
+        expect(sharedData.setRefreshAutoCompleteValue).toHaveBeenCalledTimes(1);
+        expect(component.downloadPercent).toBe(100);
+    });
+
+    it('clears the progress line when a download goes idle mid-way', () => {
+        component.handleStatusEvent(statusEvent({ video_id: 6, download: '[download]  45.3% of  229.20MiB', title: 'A Title' }));
+        component.handleStatusEvent(statusEvent({ state: 'idle', video_id: 0 }));
+
+        expect(component.serverLogs).toBe('');
+        expect(component.downloadPercent).toBeNull();
+        expect(component.activeDLTitle).toBe('A Title');
+        expect(sharedData.setRefreshAutoCompleteValue).not.toHaveBeenCalled();
+    });
+
+    it('refreshes twice when the same video completes, downloads again and completes', () => {
+        component.handleStatusEvent(statusEvent({ state: 'completed', video_id: 7, download: 'Download completed successfully.' }));
+        component.handleStatusEvent(statusEvent({ video_id: 7, download: '[download]  10.0% of  1.00MiB' }));
+        component.handleStatusEvent(statusEvent({ state: 'completed', video_id: 7, download: 'Download completed successfully.' }));
+
+        expect(sharedData.setRefreshAutoCompleteValue).toHaveBeenCalledTimes(2);
+    });
+
+    it('shows one toast per failed video', () => {
+        component.handleStatusEvent(statusEvent({ state: 'failed', video_id: 9, download: 'ERROR: boom' }));
+        component.handleStatusEvent(statusEvent({ state: 'failed', video_id: 9, download: 'ERROR: boom' }));
+
+        expect(messageService.add).toHaveBeenCalledTimes(1);
+        expect(sharedData.setRefreshAutoCompleteValue).not.toHaveBeenCalled();
+        expect(component.downloadPercent).toBeNull();
+    });
+
+    it('keeps the last item on idle', () => {
+        component.handleStatusEvent(statusEvent({ state: 'completed', title: 'A Title', channel: 'A Channel', download: 'Download completed successfully.' }));
+        component.handleStatusEvent(statusEvent({ state: 'idle', video_id: 0 }));
+
+        expect(component.activeDLTitle).toBe('A Title');
+        expect(component.activeDLChannel).toBe('A Channel');
+        expect(component.serverLogs).toBe('Download completed successfully.');
+    });
+
+    it('shows the last item named by an idle event on a fresh page', () => {
+        component.handleStatusEvent(statusEvent({ state: 'idle', video_id: 0, title: 'Last Title', channel: 'Last Channel', thumbnail: 'last.jpg' }));
+
+        expect(component.activeDLTitle).toBe('Last Title');
+        expect(component.activeDLChannel).toBe('Last Channel');
+        expect(component.activeDLImage).toBe('last.jpg');
+        expect(component.downloadPercent).toBeNull();
+    });
+
+    it('opens the video page for the last item once nothing is downloading', async () => {
+        const videosSvc = TestBed.inject(VideosService);
+        const video: any = { video_id: 7 };
+        spyOn(videosSvc, 'getContentById').and.resolveTo({ data: [video] } as any);
+        spyOn(sharedData, 'setPlayVideo');
+        const navigate = spyOn(TestBed.inject(Router), 'navigate').and.resolveTo(true);
+
+        component.handleStatusEvent(statusEvent({ state: 'idle', video_id: 7, title: 'Last Title' }));
+        expect(component.canPlayActive).toBeTrue();
+        await component.playActive();
+
+        expect(videosSvc.getContentById).toHaveBeenCalledWith(7);
+        expect(sharedData.setPlayVideo).toHaveBeenCalledWith(video);
+        expect(navigate).toHaveBeenCalledWith(['videos', 'play']);
+    });
+
+    it('opens a queued item with its full record, and ignores the placeholder id', async () => {
+        const videosSvc = TestBed.inject(VideosService);
+        const video: any = { video_id: 31 };
+        const get = spyOn(videosSvc, 'getContentById').and.resolveTo({ data: [video] } as any);
+        spyOn(sharedData, 'setPlayVideo');
+        const navigate = spyOn(TestBed.inject(Router), 'navigate').and.resolveTo(true);
+
+        await component.openVideo(-1);
+        expect(get).not.toHaveBeenCalled();
+
+        await component.openVideo(31);
+        expect(get).toHaveBeenCalledWith(31);
+        expect(sharedData.setPlayVideo).toHaveBeenCalledWith(video);
+        expect(navigate).toHaveBeenCalledWith(['videos', 'play']);
+    });
+
+    it('tells the user when a queued item is not in the library', async () => {
+        spyOn(TestBed.inject(VideosService), 'getContentById').and.resolveTo({ data: null } as any);
+        const navigate = spyOn(TestBed.inject(Router), 'navigate').and.resolveTo(true);
+
+        await component.openVideo(31);
+
+        expect(messageService.add).toHaveBeenCalledTimes(1);
+        expect(navigate).not.toHaveBeenCalled();
+    });
+
+    it('does not open the video page while a download is running or before any item is known', () => {
+        expect(component.canPlayActive).toBeFalse();
+        component.handleStatusEvent(statusEvent({ state: 'downloading', video_id: 7 }));
+        expect(component.canPlayActive).toBeFalse();
+        component.handleStatusEvent(statusEvent({ state: 'saving', video_id: 7 }));
+        expect(component.canPlayActive).toBeFalse();
+        component.handleStatusEvent(statusEvent({ state: 'completed', video_id: 7 }));
+        expect(component.canPlayActive).toBeTrue();
+    });
+
+    it('keeps the default logs on idle when nothing is shown', () => {
+        component.handleStatusEvent(statusEvent({ state: 'idle', video_id: 0 }));
+
+        expect(component.serverLogs).toBe('no logs available');
+        expect(component.activeDLTitle).toBe('');
+    });
+
+    it('keeps the previous title when an event field is empty', () => {
+        component.handleStatusEvent(statusEvent({ title: 'A Title', channel: 'A Channel' }));
+        component.handleStatusEvent(statusEvent({ state: 'saving', download: 'saving' }));
+
+        expect(component.activeDLTitle).toBe('A Title');
+        expect(component.activeDLChannel).toBe('A Channel');
+    });
+
+    it('handles events from the service after init and stops after destroy', () => {
+        fixture.detectChanges();
+        events.next(statusEvent({ title: 'Live' }));
+        expect(component.activeDLTitle).toBe('Live');
+
+        fixture.destroy();
+        expect(events.observed).toBeFalse();
+    });
+
+    it('rejects an empty URL', async () => {
+        const svc = fixture.debugElement.injector.get(DownloadService) as any;
+        svc.getMetadata = jasmine.createSpy('getMetadata');
+        component.options.Identifier = '';
+
+        await component.GetMedia();
+
+        expect(svc.getMetadata).not.toHaveBeenCalled();
+        expect(messageService.add).toHaveBeenCalledWith(jasmine.objectContaining({ severity: 'error', detail: 'Enter a video or playlist URL' }));
+        expect(component.loading).toBeFalse();
+        expect(component.urlInputDisabled).toBeFalse();
+    });
+
+    it('does not refresh search when a download is only queued', async () => {
+        const svc = fixture.debugElement.injector.get(DownloadService) as any;
+        svc.getMetadata = jasmine.createSpy('getMetadata').and.resolveTo({ status: 'success', message: '', data: [{ title: 'T', channel: 'C', thumbnail: 'th.jpg' }] });
+        component.options.Identifier = 'abc';
+
+        await component.GetMedia();
+
+        expect(svc.getMetadata).toHaveBeenCalled();
+        expect(component.activeDLTitle).toBe('T');
+        expect(sharedData.setRefreshAutoCompleteValue).not.toHaveBeenCalled();
+    });
+
+    it('re-measures the drawer scrollbar once new queued items are in', fakeAsync(() => {
+        const refresh = jasmine.createSpy('refresh');
+        component.queueScroll = { refresh } as any;
+
+        component.getQueuedItems(false);
+        tick();
+
+        expect(refresh).toHaveBeenCalledTimes(1);
+        fixture.destroy();
+    }));
+
+    it('polls the queue while the drawer is open', fakeAsync(() => {
+        const svc = fixture.debugElement.injector.get(DownloadService) as any;
+        const spy = spyOn(svc, 'getQueuedItems').and.returnValue(Promise.resolve([]));
+
+        component.getQueuedItems(true);
+        tick(6000);
+        expect(spy.calls.count()).toBeGreaterThanOrEqual(3);
+
+        component.sidebarVisible = false;
+        tick(3000);
+        const calls = spy.calls.count();
+        tick(6000);
+        expect(spy.calls.count()).toBe(calls);
+        fixture.destroy();
+    }));
+
+    it('does not start a second queue poll while one is still running', fakeAsync(() => {
+        const svc = fixture.debugElement.injector.get(DownloadService) as any;
+        const spy = spyOn(svc, 'getQueuedItems').and.returnValue(new Promise(() => { }));
+
+        component.getQueuedItems(true);
+        tick(9000);
+
+        //the click itself plus the first poll - later ticks are skipped while that poll hangs
+        expect(spy.calls.count()).toBe(2);
+        fixture.destroy();
+    }));
+
+    it('keeps the last queue and keeps polling when a poll fails', fakeAsync(() => {
+        const svc = fixture.debugElement.injector.get(DownloadService) as any;
+        const items = [{ title: 'Queued One' }];
+        const spy = spyOn(svc, 'getQueuedItems').and.callFake(() => spy.calls.count() === 2 ? Promise.reject('down') : Promise.resolve(items));
+        spyOn(console, 'error');
+
+        component.getQueuedItems(true);
+        tick(6000);
+
+        expect(spy.calls.count()).toBe(3);
+        expect(component.queuedItems as any).toBe(items);
+        expect(console.error).toHaveBeenCalledTimes(1);
+        fixture.destroy();
+    }));
+});

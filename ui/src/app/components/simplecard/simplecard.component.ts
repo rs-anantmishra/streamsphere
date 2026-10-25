@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 import { VideoData } from '../../classes/video-data'
@@ -17,13 +17,16 @@ import { UrlEncode } from '../../utilities/url-encode';
 @Component({
     selector: 'app-simplecard',
     imports: [ToastModule, CardModule, TooltipModule, TagModule, FilesizeConversionPipe, CommaSepStringFromArray, MinifiedViewCount, MinifiedDatePipe, FormattedResolutionPipe],
-    providers: [MessageService, Router, UrlEncode],
+    providers: [MessageService, UrlEncode],
     templateUrl: './simplecard.component.html',
     styleUrl: './simplecard.component.scss'
 })
 export class SimplecardComponent implements OnInit {
 
     @Input() metadata!: VideoData;
+    //a list that needs more than the card's own data (e.g. the download queue) opens the video itself
+    @Input() navigate = true
+    @Output() cardClick = new EventEmitter<VideoData>()
     constructor(private router: Router, private svcSharedData: SharedDataService, private urlEncode: UrlEncode) {
     }
 
@@ -38,6 +41,10 @@ export class SimplecardComponent implements OnInit {
     }
 
     selectedVideo(playVideo: VideoData) {
+        if (!this.navigate) {
+            this.cardClick.emit(playVideo)
+            return
+        }
         this.svcSharedData.setPlayVideo(playVideo);
         this.router.navigate(['/videos/play'])
     }

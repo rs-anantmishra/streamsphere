@@ -2,8 +2,8 @@
   <a routerLink="/home" class="p-button font-bold" size="small">Router</a>
 </div>
 <div class="video-frame">
-  <video id='plyrId' controls crossorigin playsinline class="player-video" poster="{{selectedVideo.thumbnail}}">
-    <source [src]="this.selectedVideo.media_url" type="video/webm" size="1080">
+  <!-- the source and poster are set through the player (playSelectedVideo), which owns this element -->
+  <video #playerVideo id='plyrId' controls crossorigin playsinline class="player-video">
     <!-- Fallback for browsers that don't support the <video> element -->
     <a [href]="selectedVideo.media_url" download>Download</a>
   </video>
@@ -54,13 +54,16 @@
   <div class="content-extras">
     <p-fieldset [toggleable]="true">
       <ng-template pTemplate="header">
-        @if (this.playlist != undefined) {
+        @if (this.playlist?.info) {
           <span
           class="fieldset-header">{{this.playlist.info.playlist_title}}</span>
         }
       </ng-template>
       <div class="playlist-container">
         <p-scrollPanel [style]="{ 'width': '100%', 'max-height': '400px', 'height': '400px' }">
+          @if (loaded && playlistVideos.length === 0) {
+            <span class="empty-playlist">This playlist has no videos.</span>
+          }
           @for (video of playlistVideos; track video.video_id) {
             <!-- <div class="fieldset-playlist-content" (click)="changeContent(video.video_id)" [ngClass]="((this.selectedVideo.video_id === video.video_id) && this.isDarkMode) ? 'selected-video-dark' : 'selected-video-light'"> -->
             <div (click)="changeContent(video.video_id);" [ngClass]="this.getClass(video)"
@@ -132,10 +135,10 @@
             </p-confirmpopup>
           </div>
           <p-button icon="pi pi-trash" (onClick)="confirm($event, this.selectedVideo.video_id)" [style]="{'margin': '2px'}"
-            size="small" outlined="true" severity="danger" [style]="{'margin-right': '8px'}" label="" />
+            size="small" outlined="true" severity="danger" [style]="{'margin-right': '8px'}" label="" [disabled]="!hasVideo" />
           <!-- download -->
           <p-button icon="pi pi-download" (click)="download()" size="small" severity="secondary" [style]="{'margin': '2px'}"
-            label="Download" />
+            label="Download" [disabled]="!hasVideo" />
         </div>
       </div>
     </p-fieldset>

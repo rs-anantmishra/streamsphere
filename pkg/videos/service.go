@@ -90,15 +90,11 @@ func (s *service) DeleteContentById(contentId int) (bool, error) {
 	var result bool
 	//if delete is successful in db remove files from filessystem
 	if isDeleteSuccessful {
-		//remove content file
-		err := os.Remove(contentFilePath)
-		if err != nil {
-			return result, errors.New(fmt.Sprintln("Db cleared. Removal of file: %v failed.", contentFilePath))
-		}
-		//remove thumbnail file
-		err = os.Remove(thumbnailFilePath)
-		if err != nil {
-			return result, errors.New(fmt.Sprintln("Db cleared. Removal of file: %v failed.", thumbnailFilePath))
+		//remove content file, then thumbnail file
+		for _, path := range []string{contentFilePath, thumbnailFilePath} {
+			if err := removeFile(path); err != nil {
+				return result, fmt.Errorf("db cleared, but removing %s failed: %w", path, err)
+			}
 		}
 		result = true
 	} else {
@@ -106,4 +102,12 @@ func (s *service) DeleteContentById(contentId int) (bool, error) {
 	}
 
 	return result, nil
+}
+
+// removeFile deletes a file; one that is already gone counts as removed.
+func removeFile(path string) error {
+	if err := os.Remove(path); err != nil && !errors.Is(err, os.ErrNotExist) {
+		return err
+	}
+	return nil
 }

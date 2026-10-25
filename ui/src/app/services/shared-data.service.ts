@@ -8,15 +8,21 @@ import { BehaviorSubject, Observable, Subject, Subscription } from 'rxjs';
 })
 export class SharedDataService {
 
-    constructor() { }
+    constructor() {
+        //the download status is no longer kept in localStorage - clear what earlier versions left behind
+        try {
+            localStorage.removeItem('isDownloadActive')
+            localStorage.removeItem('activeDownloadMetadata')
+        } catch {
+            //storage can be unavailable (private mode) - nothing to clear then
+        }
+    }
     isDarkMode: boolean = false;
     lstVideos: VideoData[] = [];
     lstPlaylists: PlaylistsInfo[] = [];
-    isDownloadActive: boolean = false;
     isPlaylist: boolean = false;
     playlist!: any;
     queuedItemsMetadata: VideoData[] = [];
-    activeDownloadMetadata: VideoData[] = [];
     videosPageSizeCount: number = -1;
     playlistsPageSizeCount: number = -1;
     activePlayerMetadata: VideoData = new VideoData();
@@ -46,18 +52,6 @@ export class SharedDataService {
         return this.queuedItemsMetadata
     }
 
-    setIsDownloadActive(value: boolean) {
-        localStorage.setItem('isDownloadActive', JSON.stringify(value));
-    }
-
-    getIsDownloadActive(): boolean {
-        let stringResult = localStorage.getItem('isDownloadActive') !== null ? localStorage.getItem('isDownloadActive') : 'false'
-        let isActive = stringResult === null ? false : JSON.parse(stringResult);
-        this.isDownloadActive = isActive;
-
-        return this.isDownloadActive
-    }
-
     setIsDarkMode(value: boolean) {
         localStorage.setItem('isDarkMode', JSON.stringify(value));
     }
@@ -80,18 +74,6 @@ export class SharedDataService {
         this.isPlaylist = isPl;
 
         return this.isPlaylist
-    }
-
-    setActiveDownloadMetadata(value: any) {
-        localStorage.setItem('activeDownloadMetadata', JSON.stringify(value));
-    }
-
-    getActiveDownloadMetadata() {
-        let stringResult = localStorage.getItem('activeDownloadMetadata') !== null ? localStorage.getItem('activeDownloadMetadata') : JSON.stringify([])
-        let activeDownloadMeta = stringResult === null ? [new VideoData()] : JSON.parse(stringResult);
-        this.activeDownloadMetadata = activeDownloadMeta;
-
-        return this.activeDownloadMetadata
     }
 
     setlstVideos(value: any) {

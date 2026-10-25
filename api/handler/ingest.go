@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gofiber/contrib/websocket"
@@ -43,8 +44,8 @@ func NetworkIngestMetadata(c *fiber.Ctx) error {
 	// If Metadata is not fetched, and there is an error message from yt-dlp
 	// just show that error on the UI
 	result, err := svcVideos.ExtractIngestMetadata(*params)
-	if len(result) == 0 {
-		err = errors.New("invalid url provided")
+	if len(result) == 0 && err == nil {
+		err = errors.New("no video information was returned for this url")
 	}
 	if err != nil {
 		status = `failure`
@@ -130,75 +131,96 @@ func NetworkIngestMedia(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(result)
 }
 
+// downloadStatusResponse builds the status message; an idle item keeps only what identifies the last download (id, title, channel, thumbnail),
+// so the page can show it again after a reload or a visit to another page.
+func downloadStatusResponse(item g.DownloadStatus) res.DownloadStatusResponse {
+	state := downloadState(item)
+	if state == "idle" {
+		return res.DownloadStatusResponse{State: state, VideoId: item.VideoId, Title: item.Title, Channel: item.Channel, Thumbnail: item.Thumbnail}
+	}
+	return res.DownloadStatusResponse{
+		Message:   item.StatusMessage,
+		VideoURL:  item.VideoURL,
+		State:     state,
+		VideoId:   item.VideoId,
+		Title:     item.Title,
+		Channel:   item.Channel,
+		Thumbnail: item.Thumbnail,
+	}
+}
+
+// downloadState maps the active item's status message to a wire-format state.
+func downloadState(item g.DownloadStatus) string {
+	switch {
+	case item.VideoURL == "":
+		return "idle"
+	case strings.HasPrefix(item.StatusMessage, "Error:"):
+		return "failed"
+	case item.StatusMessage == "Download completed successfully.":
+		return "completed"
+	case item.StatusMessage == "[download] Saving file to library...":
+		return "saving"
+	default:
+		return "downloading"
+	}
+}
+
+// DownloadStatus keeps the socket open and streams the active item's state
+// once per second; idle heartbeats are sent at most every 5 seconds.
 func DownloadStatus(c *websocket.Conn) {
-	var (
-		mt  int
-		msg []byte
-		err error
-	)
-	//global MPI
-	const _blank string = ""
+	const idleInterval = 5 * time.Second
+	const writeTimeout = 5 * time.Second
 	activeItem := g.NewActiveItem()
-	mt = websocket.TextMessage
-	terminate := false
+	var lastIdle time.Time
+
+	// Read so the library processes the client's close frame; any error ends the handler.
+	// Capture the raw conn: c is pooled and its embedded Conn is nilled when the handler returns.
+	ws := c.Conn
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		for {
+			if _, _, err := ws.ReadMessage(); err != nil {
+				return
+			}
+		}
+	}()
+	// Stop the reader before returning: fasthttp recycles the connection and its buffers once the handler ends.
+	defer func() {
+		_ = ws.SetReadDeadline(time.Now())
+		<-done
+	}()
+	ticker := time.NewTicker(time.Second)
+	defer ticker.Stop()
 
 	for {
-		if len(activeItem) > 0 && activeItem[0].VideoURL != _blank {
+		dsr := res.DownloadStatusResponse{State: "idle"}
+		if len(activeItem) > 0 {
+			dsr = downloadStatusResponse(activeItem[0])
+		}
 
-			dsr := res.DownloadStatusResponse{Message: activeItem[0].StatusMessage, VideoURL: activeItem[0].VideoURL}
+		if dsr.State != "idle" || time.Since(lastIdle) >= idleInterval {
 			jsonData, e := json.Marshal(dsr)
 			if e != nil {
 				log.Info(e)
 			}
-			msg = []byte(jsonData)
-
-			if err = c.WriteMessage(mt, msg); err != nil {
+			// A client that vanished without closing must fail the write instead of lingering in the OS buffer.
+			_ = ws.SetWriteDeadline(time.Now().Add(writeTimeout))
+			if err := c.WriteMessage(websocket.TextMessage, jsonData); err != nil {
 				log.Info("write:", err)
 				break
 			}
-		} else {
-			// Send a WebSocket close message
-			deadline := time.Now().Add(time.Second * 5)
-			err := c.Conn.WriteControl(
-				websocket.CloseMessage,
-				websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""),
-				deadline,
-			)
-			if err != nil {
-				log.Info("ws error:", err)
-			}
-
-			// Set deadline for reading the next message
-			err = c.Conn.SetReadDeadline(time.Now().Add(2 * time.Second))
-			if err != nil {
-				log.Info("ws error:", err)
-			}
-			// Read messages until the close message is confirmed
-			for {
-				_, _, err = c.Conn.NextReader()
-				if websocket.IsCloseError(err, websocket.CloseNormalClosure) {
-					terminate = true
-					break
-				}
-				if err != nil {
-					terminate = true
-					break
-				}
-			}
-			// Close the TCP connection
-			err = c.Conn.Close()
-			if err != nil {
-				log.Info("ws error:", err)
-			}
-
-			if terminate {
-				break
+			if dsr.State == "idle" {
+				lastIdle = time.Now()
 			}
 		}
 
 		//transmit data once per second
-		duration := time.Second
-		time.Sleep(duration)
+		select {
+		case <-done:
+			return
+		case <-ticker.C:
+		}
 	}
 }
 

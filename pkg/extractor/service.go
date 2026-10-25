@@ -2,6 +2,7 @@ package extractor
 
 import (
 	"errors"
+	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2/log"
@@ -31,7 +32,10 @@ func NewDownloadService(r IRepository, d IDownload) IService {
 func (s *service) ExtractIngestMetadata(params e.IncomingRequest) ([]p.CardsInfoResponse, error) {
 	var response []p.CardsInfoResponse
 
-	metadata, fp := s.download.ExtractMetadata()
+	metadata, fp, err := s.download.ExtractMetadata()
+	if err != nil {
+		return response, err
+	}
 	if len(metadata) > 0 {
 		domainCheck := checkContentDomain(metadata) //temporary check placed
 		if !domainCheck {
@@ -90,6 +94,11 @@ func (s *service) ExtractIngestMedia() {
 
 			fileInfo := s.download.GetDownloadedMediaFileInfo(smi, fp)
 			dbResult := s.repository.SaveMediaContent(fileInfo)
+
+			//announce completion only after the db write, so clients can refresh search immediately
+			if !strings.HasPrefix(activeItem[0].StatusMessage, "Error:") {
+				activeItem[0].StatusMessage = "Download completed successfully."
+			}
 
 			//wait before next
 			duration := time.Second

@@ -81,7 +81,7 @@ INNER JOIN tblPlaylistVideoFiles PVF ON PVF.PlaylistId = P.Id
 INNER JOIN tblVideos V ON V.Id = PVF.VideoId
 INNER JOIN tblFiles F ON F.VideoId = PVF.VideoId
 WHERE P.Id > 0 
-	AND PVF.PlaylistVideoIndex = 1 
+	AND PVF.PlaylistVideoIndex = (SELECT MIN(PlaylistVideoIndex) FROM tblPlaylistVideoFiles WHERE PlaylistId = P.Id)
 	AND F.FileType = 'Thumbnail'
 ORDER BY P.Id ASC`
 
@@ -161,7 +161,7 @@ INNER JOIN tblFiles FIVideo ON (V.Id = FIVideo.VideoId AND FIVideo.FileType = 'V
 
 /*Hard Delete Queries*/
 
-const GetVideoDeleteDetails string = `Select YoutubeVideoId, FIThumbnail.FilePath || '\' || FIThumbnail.FileName as 'ThumbnailFile', FIVideo.FilePath || '\' || FIVideo.FileName as 'ContentFile'
+const GetVideoDeleteDetails string = `Select YoutubeVideoId, FIThumbnail.FilePath || '/' || FIThumbnail.FileName as 'ThumbnailFile', FIVideo.FilePath || '/' || FIVideo.FileName as 'ContentFile'
 FROM tblVideos V
 INNER JOIN tblFiles FIThumbnail ON (V.Id = FIThumbnail.VideoId AND FIThumbnail.FileType = 'Thumbnail')
 INNER JOIN tblFiles FIVideo ON (V.Id = FIVideo.VideoId AND FIVideo.FileType = 'Video') 

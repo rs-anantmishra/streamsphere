@@ -1,16 +1,17 @@
 
-import { Component, OnInit, OnDestroy, effect } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, effect } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { InputGroupModule } from 'primeng/inputgroup';
 import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
 import { InputTextModule } from 'primeng/inputtext';
 import { ButtonModule } from 'primeng/button';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { CheckboxModule } from 'primeng/checkbox';
 import { PanelModule } from 'primeng/panel';
 import { CardModule } from 'primeng/card';
 import { DrawerModule } from 'primeng/drawer';
-import { ScrollPanelModule } from 'primeng/scrollpanel';
+import { ScrollPanel, ScrollPanelModule } from 'primeng/scrollpanel';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { ToastModule } from 'primeng/toast';
@@ -18,8 +19,7 @@ import { MessageService } from 'primeng/api';
 import { FieldsetModule } from 'primeng/fieldset';
 import { DividerModule } from 'primeng/divider';
 import { PopoverModule } from 'primeng/popover';
-import { webSocket } from 'rxjs/webSocket'
-import { environment } from '../../../environments/environment';
+import { Subscription } from 'rxjs';
 import { UrlEncode } from '../../utilities/url-encode';
 
 
@@ -31,10 +31,12 @@ import { SharedDataService, Operation } from '../../services/shared-data.service
 import { Messages, Severity } from '../../constants/messages'
 import { RemovePrefixPipe } from '../../utilities/pipes/remove-prefix.pipe'
 import { FilesService } from '../../services/files.service';
+import { VideosService } from '../../services/videos.service';
 import { FilesizeConversionPipe } from '../../utilities/pipes/filesize-conversion.pipe'
+import { DownloadStatusEvent } from '../../interfaces/download-status-event';
+import { parseDownloadPercent } from '../../utilities/parse-download-percent';
 
 
-const apiUrl: string = environment.baseUrl
 interface ExtractionOptions {
     Identifier: string;
     GetAudioOnly: boolean;
@@ -51,23 +53,26 @@ interface ExtractionOptions {
     templateUrl: './downloads.component.html',
     styleUrl: './downloads.component.scss'
 })
-export class DownloadsComponent implements OnInit {
+export class DownloadsComponent implements OnInit, OnDestroy {
 
-    wsApiURL: string = this.getWebSocketApiUrl()
-    wsMessage: string;
     serverLogs: string;
     queuedItems: VideoData[] = []
+    @ViewChild('queueScroll') queueScroll?: ScrollPanel
     nilMetadata = new VideoData()
 
     loading: boolean = false;
     urlInputDisabled: boolean = false;
 
-    sock = webSocket(this.wsApiURL)
+    statusSubscription?: Subscription
+    downloadPercent: number | null = null
+    private completedIds = new Set<number>()
+    private failedIds = new Set<number>()
+    private lastEvent?: DownloadStatusEvent
 
+    activeDLVideoId = 0
     activeDLImage = ''
     activeDLChannel = ''
     activeDLTitle = ''
-    activeDownload: VideoData = new VideoData()
 
     //css-classes
     homeBoxActive = 'home-box'
@@ -82,70 +87,106 @@ export class DownloadsComponent implements OnInit {
         private svcDownload: DownloadService,
         private svcFiles: FilesService,
         private sharedData: SharedDataService,
+        private svcVideos: VideosService,
+        private router: Router,
         readonly urlEncode: UrlEncode,
         private msg: Messages) {
 
-        this.wsMessage = msg.wsMessage
         this.serverLogs = msg.serverLogs
-
-        this.callFunction()
     }
 
     async ngOnInit() {
+        this.startPlaceholderRotation()
 
         this.sharedData.isPlaylist = this.sharedData.getIsPlaylist()
-        this.sharedData.isDownloadActive = this.sharedData.getIsDownloadActive()
-        this.sharedData.activeDownloadMetadata = this.sharedData.getActiveDownloadMetadata()
+
+        //the server keeps the socket open and sends the current state every second
+        this.statusSubscription = this.svcDownload.statusEvents().subscribe(event => this.handleStatusEvent(event))
 
         //get queued-items on reload
         await this.getQueuedItems(false)
-
-        //if there is an active download
-        this.getDownloadStatus()
-        this.populateVideoMetadata('init')
     }
 
-    async getDownloadStatus() {
-        this.sock.subscribe();
-        this.sock.next(this.wsMessage);
+    handleStatusEvent(event: DownloadStatusEvent) {
+        this.finishEndedItem(event)
+        this.lastEvent = event
 
-        this.sock.subscribe({
-            next: msg => { this.updateLogs(JSON.stringify(msg)); /* console.log(JSON.stringify(msg)) */ },
-            error: err => { this.updateLogs('{"download": "web-socket connection is closed."}'); console.log('err:', err) },
-            complete: () => { this.wsCloseWithDownloadComplete() }
-        });
-        //this.sock.complete();
-    }
+        //the server keeps naming the last item while idle, so it shows again after a reload or a visit to another page
+        this.activeDLVideoId = event.video_id || this.activeDLVideoId
+        this.activeDLTitle = event.title || this.activeDLTitle
+        this.activeDLChannel = event.channel || this.activeDLChannel
+        this.activeDLImage = event.thumbnail || this.activeDLImage
 
-    wsCloseWithDownloadComplete() {
-        console.log('ws-close message frame recieved from server.')
-        this.sharedData.isDownloadActive = false
-        this.sharedData.setIsDownloadActive(false)
-    }
+        if (event.state === 'idle') { return }
 
-    async updateLogs(message: string) {
-        let isActiveDownload = this.sharedData.getIsDownloadActive()
+        //yt-dlp also reports warnings and blank lines while downloading - keep showing the last progress line
+        const isProgressLine = event.state !== 'downloading' || event.download.includes(this.msg.downloadInfoIdentifier)
+        if (isProgressLine) { this.serverLogs = event.download }
 
-        if (!isActiveDownload) {
-            await this.getAndSaveActiveDownload()
-            this.populateVideoMetadata()
-            if (this.activeDownload !== null && this.activeDownload.title !== '') {
-                this.sharedData.setIsDownloadActive(true)
-            }
+        if (event.state === 'downloading') {
+            if (isProgressLine) { this.downloadPercent = parseDownloadPercent(event.download) }
+            //a retried or repeated download of the same video can complete or fail again
+            this.completedIds.delete(event.video_id)
+            this.failedIds.delete(event.video_id)
+        } else if (event.state === 'completed') {
+            this.downloadPercent = 100
+        } else {
+            this.downloadPercent = null
         }
 
-        const log = JSON.parse(message)
-        if (log.download === this.msg.downloadComplete) {
-            this.serverLogs = log.download
-            this.sharedData.setIsDownloadActive(false)
-            await setTimeout(() => {
-                this.sharedData.setRefreshAutoCompleteValue(true);
-            }, 500);
-        } else if (this.serverLogs === this.msg.downloadComplete) {
-            this.serverLogs = this.serverLogs + ' ' + log.download
-        } else if (log.download.indexOf(this.msg.downloadInfoIdentifier) !== -1) {
-            this.serverLogs = log.download
+        //the server holds completed/failed for about a second - act once per video
+        if (event.state === 'completed') {
+            this.markCompleted(event.video_id)
+        } else if (event.state === 'failed' && !this.failedIds.has(event.video_id)) {
+            this.failedIds.add(event.video_id)
+            this.showMessage('Download failed: ' + (event.title || event.download), 'error', 'error')
         }
+    }
+
+    //a video has its file in the library once its download is over (or nothing is running)
+    get canPlayActive(): boolean {
+        return this.activeDLVideoId > 0 && (this.lastEvent?.state === 'completed' || this.lastEvent?.state === 'idle')
+    }
+
+    async playActive() {
+        if (!this.canPlayActive) { return }
+        await this.openVideo(this.activeDLVideoId)
+    }
+
+    //the status and queue lists only carry a few fields, so the video page gets the full record
+    async openVideo(videoId: number) {
+        if (!(videoId > 0)) { return }
+        const result = await this.svcVideos.getContentById(videoId)
+        if (result.data == null || result.data.length === 0) {
+            this.showMessage('This video is not in the library.', 'error', 'error')
+            return
+        }
+        this.sharedData.setPlayVideo(result.data[0])
+        this.router.navigate(['videos', 'play'])
+    }
+
+    //the server's completed message is short-lived and can fall between two status checks (or be lost to a reconnect)
+    private finishEndedItem(event: DownloadStatusEvent) {
+        const prev = this.lastEvent
+        if (!prev || (prev.state !== 'downloading' && prev.state !== 'saving')) { return }
+        if (event.state !== 'idle' && event.video_id === prev.video_id) { return }
+
+        if (prev.state === 'saving') {
+            //the file was being saved, so it is in the library now
+            this.downloadPercent = 100
+            this.markCompleted(prev.video_id)
+        } else {
+            //interrupted mid-download - drop the stale progress line
+            this.serverLogs = ''
+            this.downloadPercent = null
+        }
+    }
+
+    //the server sends completion only after the file is saved, so search can refresh right away
+    private markCompleted(videoId: number) {
+        if (this.completedIds.has(videoId)) { return }
+        this.completedIds.add(videoId)
+        this.sharedData.setRefreshAutoCompleteValue(true);
     }
 
     flipCheckbox(event: any, option: string): void {
@@ -157,40 +198,42 @@ export class DownloadsComponent implements OnInit {
     }
 
     async GetMedia() {
+        if (this.options.Identifier.trim() === '') {
+            this.showMessage('Enter a video or playlist URL', 'error', 'error')
+            return
+        }
+
         this.loading = true;
         this.activeDLTitle = this.msg.getTitle
         this.activeDLChannel = this.msg.getChannel
         this.serverLogs = this.msg.getInfo
 
         this.urlInputDisabled = true;
-        let metadataRequest = await this.GetMetadataRequest(this.options)
-        if (metadataRequest.Indicator === '') {
-            this.showMessage('No URL or Identifier provided', 'error', 'error')
-            return
-        }
+        let metadataRequest = this.GetMetadataRequest(this.options)
 
-        let metadataResponse = await this.svcDownload.getMetadata(metadataRequest)
-        if (metadataResponse.status === 'failure') {
-            this.showMessage(metadataResponse.message, 'error', 'error')
-            //Completion Process
-            this.GetMediaCompleteResult(false)
-        } else {
-            let metadata = metadataResponse.data;
-            let isDownloadActive = this.sharedData.getIsDownloadActive()
-            if (!isDownloadActive) {
-                await this.getAndSaveActiveDownload()
-                this.populateVideoMetadata()
-                this.sharedData.setIsDownloadActive(true)
+        try {
+            let metadataResponse = await this.svcDownload.getMetadata(metadataRequest)
+            if (metadataResponse.status === 'failure') {
+                this.showMessage(metadataResponse.message, 'error', 'error')
+                //Completion Process
+                this.GetMediaCompleteResult(false)
+            } else {
+                //show the queued item right away, status events take over once it starts downloading
+                let metadata = metadataResponse.data;
+                if (metadata && metadata.length > 0) {
+                    this.activeDLTitle = metadata[0].title
+                    this.activeDLChannel = metadata[0].channel
+                    this.activeDLImage = metadata[0].thumbnail
+                }
+
+                //Completion Process
+                this.GetMediaCompleteResult()
             }
-
-            //refresh autocomplete cache
-            this.sharedData.setRefreshAutoCompleteValue(true);
-
-            //trigger stats checker if all goes well
-            setTimeout(() => { this.getDownloadStatus(); }, 250);
-
-            //Completion Process
-            this.GetMediaCompleteResult()
+        } catch (err) {
+            //request failed (api down, network error, invalid response) - reset the ui instead of leaving it stuck
+            console.error('error: failed to queue download.', err)
+            this.showMessage('Failed to queue download: ' + err, 'error', 'error')
+            this.GetMediaCompleteResult(false)
         }
     }
 
@@ -218,33 +261,10 @@ export class DownloadsComponent implements OnInit {
         request.SubtitlesReq = options.GetSubs
         request.IsAudioOnly = options.GetAudioOnly
 
-        if (request.Indicator === '') {
-            request.Indicator = 'UMBEkWFMacc'
-            this.showMessage('Using Test Video Indicator', 'info', 'Info')
-            return request
-        }
         return request
     }
 
-    populateVideoMetadata(calledFrom: string = '') {
-        //get ActiveDownloadMetadata
-        if (this.sharedData.getActiveDownloadMetadata() !== null) {
-            this.activeDownload = this.sharedData.getActiveDownloadMetadata()[0]
-        }
-
-        if (this.activeDownload === undefined) {
-            this.activeDownload = new VideoData()
-        }
-
-        this.activeDLChannel = this.activeDownload.channel
-        this.activeDLTitle = this.activeDownload.title
-        this.activeDLImage = this.activeDownload.thumbnail
-
-        //show download complete status of the last download if called from init
-        if (calledFrom !== 'init') { this.serverLogs = ">>>waiting for server logs<<<" }
-    }
-
-    async resetDownloadOptions() {
+    resetDownloadOptions() {
         this.options.GetAudioOnly = false
         this.options.GetSubs = false
         this.options.Identifier = ''
@@ -253,12 +273,36 @@ export class DownloadsComponent implements OnInit {
     async getQueuedItems(openSidebar: boolean) {
         if (openSidebar) {
             this.sidebarVisible = true
+            this.startQueuePolling()
         }
         await this.svcDownload.getQueuedItems("queued").then(item => { this.queuedItems = item; })
+        //the scrollbar is only measured on mouse-enter and scroll, so it is told once the new cards are rendered
+        setTimeout(() => this.queueScroll?.refresh())
     }
 
-    async getAndSaveActiveDownload() {
-        await this.svcDownload.getQueuedItems("downloading").then(item => { this.sharedData.setActiveDownloadMetadata(item); })
+    //keep the open drawer current
+    queueTimer?: ReturnType<typeof setInterval>
+    private queuePollInFlight = false
+    startQueuePolling() {
+        if (this.queueTimer) { return }
+        this.queueTimer = setInterval(async () => {
+            if (!this.sidebarVisible) { this.stopQueuePolling(); return }
+            //a slow request must not overlap the next one, a failed one keeps the last list on screen
+            if (this.queuePollInFlight) { return }
+            this.queuePollInFlight = true
+            try {
+                await this.getQueuedItems(false)
+            } catch (err) {
+                console.error('error: failed to refresh queued items.', err)
+            } finally {
+                this.queuePollInFlight = false
+            }
+        }, 3000)
+    }
+
+    stopQueuePolling() {
+        clearInterval(this.queueTimer)
+        this.queueTimer = undefined
     }
 
     fsStorageStatus: number = 0
@@ -273,27 +317,19 @@ export class DownloadsComponent implements OnInit {
         }
     }
 
-    getWebSocketApiUrl(): string {
-        let result = apiUrl.replace("http://", "ws://")
-        result = result + "/ws/status"
-        return result;
-    }
-
     ngOnDestroy() {
         // prevent memory leak when component destroyed
-        if (this.sock.closed) {
-            this.sock.complete();
-            this.sock.unsubscribe();
-        } else {
-            this.sock.unsubscribe();
-        }
+        this.statusSubscription?.unsubscribe();
+        clearInterval(this.placeholderTimer);
+        this.stopQueuePolling();
     }
 
     //placeholders = ['Video or Playlist URL', 'youtube.com/watch?v=cXdwGt_xPCI', 'cXdwGt_xPCI', 'youtu.be/cXdwGt_xPCI?si=r7GvF9rndAtAkb0n', 'youtube.com/watch?v=cABfEaP2IHo&list=PL3uDtbb3OvDMn16H-YSIHpdntVMZ6V4WU', 'youtube.com/playlist?list=PL3uDtbb3OvDMn16H-YSIHpdntVMZ6V4WU', 'PL3uDtbb3OvDMn16H-YSIHpdntVMZ6V4WU'];
     placeholders = ['Video or Playlist URL', 'youtube.com/watch?v=videoId', 'videoId', 'youtu.be/videoId', 'youtube.com/watch?v=videoId&list=playlistId', 'youtube.com/playlist?list=playlistId', 'playlistId'];
     index = 0;
-    callFunction() {
-        setInterval(() => {
+    placeholderTimer?: ReturnType<typeof setInterval>;
+    startPlaceholderRotation() {
+        this.placeholderTimer = setInterval(() => {
             if (this.index === this.placeholders.length - 1) { this.index = 0; } //reset
             this.index = this.index + 1;
             this.urlPlaceholder = this.placeholders[this.index]

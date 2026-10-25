@@ -21,7 +21,7 @@ interface PageEvent {
 @Component({
     selector: 'app-playlists',
     imports: [CommonModule, PaginatorModule, RouterModule, ButtonModule, ProgressSpinnerModule, ScrollPanelModule, PlaylistCardComponent],
-    providers: [Router, SharedDataService],
+    providers: [SharedDataService],
     templateUrl: './playlists.component.html',
     styleUrl: './playlists.component.scss'
 })
@@ -36,12 +36,21 @@ export class PlaylistsComponent implements OnInit {
     totalRecords: number = -1
     loadPage: number = -1
 
-    @ViewChild('paginator', { static: true }) paginator!: Paginator
+    @ViewChild('paginator', { static: false }) paginator!: Paginator
     lstPlaylists: any
 
     constructor(private svcPlaylists: PlaylistsService, private svcSharedData: SharedDataService) {
+    }
+
+    async ngOnInit() {
+        this.initPageSize();
+        await this.getAllPlaylists();
+        this.loadPage = 0
+    }
+
+    private initPageSize(): void {
         let pageCount = -1;
-        this.subscription = this.svcSharedData.getPageSizeCountPlaylist().subscribe(x => pageCount = x)
+        this.svcSharedData.getPageSizeCountPlaylist().subscribe(x => pageCount = x).unsubscribe()
         if (pageCount < 0) {
             if (this.svcSharedData.getPlaylistsPageSizeCount() < 0) {
                 this.svcSharedData.setPageSizeCountPlaylist(this.rows)
@@ -52,17 +61,17 @@ export class PlaylistsComponent implements OnInit {
         this.subscription = this.svcSharedData.getPageSizeCountPlaylist().subscribe(rows => this.rows = rows);
     }
 
-    async ngOnInit() {
-        await this.getAllPlaylists();
-        this.loadPage = 0
-    }
-
     async getAllPlaylists() {
-        let result = await this.svcPlaylists.getAllPlaylists();
-        if (result.data !== null && result.data.length > 0) {
-            this.svcSharedData.setlstPlaylists(result.data)
-            this.lstPlaylists = this.getPagedResult(this.first, this.rows);
-        } else if (result.data === null) {
+        try {
+            let result = await this.svcPlaylists.getAllPlaylists();
+            if (result.data && result.data.length > 0) {
+                this.svcSharedData.setlstPlaylists(result.data)
+                this.lstPlaylists = this.getPagedResult(this.first, this.rows);
+            } else {
+                this.totalRecords = 0
+            }
+        } catch (err) {
+            console.error('error: failed to load playlists.', err)
             this.totalRecords = 0
         }
     }

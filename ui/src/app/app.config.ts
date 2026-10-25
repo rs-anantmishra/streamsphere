@@ -1,5 +1,5 @@
 import { ApplicationConfig, importProvidersFrom, provideZoneChangeDetection } from '@angular/core';
-import { provideRouter, withHashLocation } from '@angular/router';
+import { provideRouter, withHashLocation, withRouterConfig } from '@angular/router';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
@@ -23,7 +23,7 @@ const AuraBlue = definePreset(Aura, {
 });
 
 export const appConfig: ApplicationConfig = {
-  providers: [provideAnimationsAsync(), provideZoneChangeDetection({ eventCoalescing: true }), [provideRouter(routes, withHashLocation())],
+  providers: [provideAnimationsAsync(), provideZoneChangeDetection({ eventCoalescing: true }), [provideRouter(routes, withHashLocation(), withRouterConfig({ onSameUrlNavigation: 'reload' }))],
   importProvidersFrom(BrowserModule), importProvidersFrom(BrowserAnimationsModule), provideAnimations(), provideHttpClient(withFetch()),
   providePrimeNG({ theme: { preset: AuraBlue, options: { darkModeSelector: '.app-dark' } } })
   ]

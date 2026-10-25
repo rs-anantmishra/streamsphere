@@ -27,8 +27,13 @@ type CardsInfoResponse struct {
 }
 
 type DownloadStatusResponse struct {
-	Message  string `json:"download"`
-	VideoURL string `json:"video_url"`
+	Message   string `json:"download"`
+	VideoURL  string `json:"video_url"`
+	State     string `json:"state"`
+	VideoId   int    `json:"video_id"`
+	Title     string `json:"title"`
+	Channel   string `json:"channel"`
+	Thumbnail string `json:"thumbnail"`
 }
 
 type PlaylistsInfoResponse struct {

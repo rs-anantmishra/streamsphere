@@ -400,75 +400,39 @@ func (r *repository) DeleteContentById(contentId int) (bool, string, string, err
 	)
 
 	//get Video Details - youtube video id
-	if err := r.db.QueryRow(q.GetVideoDeleteDetails, contentId).Scan(&ytVideoId, &contentFilePath, &thumbnailFilePath); err != nil {
+	if err := r.db.QueryRow(q.GetVideoDeleteDetails, contentId).Scan(&ytVideoId, &thumbnailFilePath, &contentFilePath); err != nil {
 		if err == sql.ErrNoRows {
 			return isDeleteSuccessful, contentFilePath, thumbnailFilePath, fmt.Errorf("contentId %d: unknown id", contentId)
 		}
 		return isDeleteSuccessful, contentFilePath, thumbnailFilePath, fmt.Errorf("delete failed for id %d: %v", contentId, err)
 	}
 
-	//region tblVideoFileTags
-	tx, _ := r.db.Begin()
-	result, err := tx.Exec(q.DeleteVideoFileTags, contentId)
+	//all of it or none of it: the first statement that fails undoes the rest, and the files are then left alone
+	tx, err := r.db.Begin()
 	if err != nil {
-		tx.Rollback()
+		return false, "", "", fmt.Errorf("delete failed for id %d: %v", contentId, err)
 	}
-	rowsAffected, err := result.RowsAffected()
-	if err == nil {
-		log.Info("Deleted %d entries for tblVideoFileTags", rowsAffected)
+	steps := []struct{ table, query string }{
+		{"tblVideoFileTags", q.DeleteVideoFileTags},
+		{"tblVideoFileCategories", q.DeleteVideoFileCategories},
+		{"tblPlaylistVideoFiles", q.DeletePlaylistVideoFiles},
+		{"tblFiles", q.DeleteFiles},
+		{"tblVideos", q.DeleteVideos},
 	}
-	//endregion
-
-	//region tblVideoFileCategories
-	result, err = tx.Exec(q.DeleteVideoFileCategories, contentId)
-	if err != nil {
-		tx.Rollback()
-	}
-
-	rowsAffected, err = result.RowsAffected()
-	if err == nil {
-		log.Info("Deleted %d entries for tblVideoFileCategories", rowsAffected)
-	}
-	//endregion
-
-	//region tblPlaylistVideoFiles
-	result, err = tx.Exec(q.DeletePlaylistVideoFiles, contentId)
-	if err != nil {
-		tx.Rollback()
+	for _, step := range steps {
+		result, err := tx.Exec(step.query, contentId)
+		if err != nil {
+			tx.Rollback()
+			return false, "", "", fmt.Errorf("delete failed for id %d at %s: %v", contentId, step.table, err)
+		}
+		if rowsAffected, err := result.RowsAffected(); err == nil {
+			log.Infof("Deleted %d entries for %s", rowsAffected, step.table)
+		}
 	}
 
-	rowsAffected, err = result.RowsAffected()
-	if err == nil {
-		log.Info("Deleted %d entries for tblPlaylistVideoFiles", rowsAffected)
+	if err := tx.Commit(); err != nil {
+		return false, "", "", fmt.Errorf("delete failed for id %d: could not commit: %v", contentId, err)
 	}
-	//endregion
-
-	//region tblFiles
-	result, err = tx.Exec(q.DeleteFiles, contentId)
-	if err != nil {
-		tx.Rollback()
-	}
-
-	rowsAffected, err = result.RowsAffected()
-	if err == nil {
-		log.Info("Deleted %d entries for tblFiles", rowsAffected)
-	}
-	//endregion
-
-	//region tblVideos
-	result, err = tx.Exec(q.DeleteVideos, contentId)
-	if err != nil {
-		tx.Rollback()
-	}
-
-	rowsAffected, err = result.RowsAffected()
-	if err == nil {
-		log.Info("Deleted %d entries for tblVideos", rowsAffected)
-	}
-	//endregion
-
-	//if all goes well, committ changes
-	tx.Commit()
 
 	isDeleteSuccessful = true
 	//DO BELOW IN SERVICE:

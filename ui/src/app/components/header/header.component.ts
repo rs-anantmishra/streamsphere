@@ -7,17 +7,17 @@ import { ToastModule } from 'primeng/toast';
 import { FilterService, SelectItemGroup } from 'primeng/api';
 import { AutoCompleteCompleteEvent, AutoCompleteModule } from 'primeng/autocomplete';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { NavigationEnd, Router } from '@angular/router';
 import { SharedDataService } from '../../services/shared-data.service';
 import { VideosService } from '../../services/videos.service';
 import { ContentSearchResponse, ContentSearch } from '../../classes/search';
-import { Subscription } from 'rxjs';
+import { Subscription, filter, skip } from 'rxjs';
 import { VideoData, VideoDataResponse } from '../../classes/video-data';
 
 @Component({
     selector: 'app-header',
     imports: [CommonModule, ButtonModule, SplitButtonModule, ToastModule, FormsModule, AutoCompleteModule],
-    providers: [MessageService, Router, VideosService],
+    providers: [MessageService, VideosService],
     templateUrl: './header.component.html',
     styleUrl: './header.component.scss'
 })
@@ -25,6 +25,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
     //isHomepage route?
     isHomepage = false
+    private routeSubscription?: Subscription;
 
     //subs updates this
     searchCacheSubscription!: Subscription;
@@ -64,20 +65,42 @@ export class HeaderComponent implements OnInit, OnDestroy {
     navItems!: MenuItem[];
     filteredGroups!: any[];
     selectedTitle: any;
-    groupedTitles!: SelectItemGroup[];
+    groupedTitles: SelectItemGroup[] = [];
 
     constructor(private router: Router,
         private videosSvc: VideosService,
         private filterService: FilterService,
         public sharedDataSvc: SharedDataService) {
+    }
+    ngOnDestroy(): void {
+        //unsubscribe
+        this.searchCacheSubscription.unsubscribe()
+        this.routeSubscription?.unsubscribe()
+    }
 
-        //check and set if homepage
-        this.checkIsHomepage('/home')
+    navigate(route: string) {
+        this.router.navigate([route]);
+    }
+
+    home: MenuItem | undefined;
+    async ngOnInit(): Promise<void> {
+        //the router knows the page, whichever way it was reached (menu, search, cards, back button, reload)
+        this.setIsHomepage(this.router.url)
+        this.routeSubscription = this.router.events.pipe(filter(e => e instanceof NavigationEnd))
+            .subscribe(e => this.setIsHomepage(e.urlAfterRedirects))
 
         //nav-items
         this.initNavItems();
 
         //check and set theme
+        this.initTheme();
+
+        //update cache - skip the BehaviorSubject's initial value, the initial load is done below
+        this.searchCacheSubscription = this.sharedDataSvc._refreshAutoComplete$.pipe(skip(1)).subscribe(() => { this.buildAutoCompleteCache(); })
+        await this.buildAutoCompleteCache();
+    }
+
+    private initTheme() {
         let isDarkMode = this.sharedDataSvc.getIsDarkMode();
         if (isDarkMode === null) {
             this.sharedDataSvc.setIsDarkMode(true)
@@ -89,31 +112,20 @@ export class HeaderComponent implements OnInit, OnDestroy {
             }
         }
     }
-    ngOnDestroy(): void {
-        //unsubscribe
-        this.searchCacheSubscription.unsubscribe()
-    }
-
-    navigate(route: string) {
-        this.checkIsHomepage(route)
-        this.router.navigate([route]);
-    }
-
-    home: MenuItem | undefined;
-    async ngOnInit(): Promise<void> {
-        //update cache
-        this.searchCacheSubscription = this.sharedDataSvc._refreshAutoComplete$.subscribe(() => { this.buildAutoCompleteCache(); })
-        await this.buildAutoCompleteCache();
-    }
 
     async buildAutoCompleteCache() {
-        let result = await this.videosSvc.getContentSearchInfo()
-        if (result.data !== null) {
-            this.groupedTitles = await this.buildAutoCompleteDataset(result)
+        try {
+            let result = await this.videosSvc.getContentSearchInfo()
+            if (result.data !== null) {
+                this.groupedTitles = this.buildAutoCompleteDataset(result)
+            }
+        } catch (err) {
+            //keep the previous search cache if a refresh fails
+            console.error('error: failed to build search cache.', err)
         }
     }
 
-    async buildAutoCompleteDataset(raw: ContentSearchResponse): Promise<SelectItemGroup[]> {
+    buildAutoCompleteDataset(raw: ContentSearchResponse): SelectItemGroup[] {
         let content: ContentSearch[] = raw.data;
         let result: SelectItemGroup[] = [];
 
@@ -136,6 +148,11 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
     //keyboard shortcuts
     @HostListener("document:keydown", ["$event"]) handleKeyboardEvent(event: KeyboardEvent) {
+        //ignore shortcuts while typing in a text field
+        const target = event.target as HTMLElement;
+        if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement || target?.isContentEditable) {
+            return;
+        }
         if (event.key === 'P') {
             this.navigate('/playlists')
         }
@@ -188,35 +205,18 @@ export class HeaderComponent implements OnInit, OnDestroy {
         ];
     }
 
-    checkIsHomepage(route: string) {
-        //if any of the mentioned reourtes are not going to PROC then its going to home.
-        if (route === '/videos' || route === '/tags' || route === '/categories' || route === '/videos/play' || route === '/playlists' || route === '/playlist-details') {
-            this.isHomepage = false
-        } else {
-            this.isHomepage = true
-        }
+    private setIsHomepage(url: string) {
+        //home is the download page - the empty path redirects to it
+        const path = url.split(/[?#]/)[0]
+        this.isHomepage = path === '/home' || path === '/' || path === ''
     }
 
-    //search result - clicked
+    //search result - selected by click or keyboard (onSelect passes the full { label, value } option)
     async navigateToVideo(selected: any) {
-        //click on an empty search field
         if (selected !== undefined) {
             let result = await this.videosSvc.getContentById(selected.value)
             if (result.data != null) {
                 this.selectedVideo(result.data[0])
-            }
-        }
-    }
-
-    //search result - enter pressed
-    async navigateToVideoOnEnter(selected: any, $event: KeyboardEvent) {
-        if ($event.key == 'Enter') {
-            //click on an empty search field
-            if (selected !== undefined) {
-                let result = await this.videosSvc.getContentById(selected.value)
-                if (result.data != null) {
-                    this.selectedVideo(result.data[0])
-                }
             }
         }
     }
