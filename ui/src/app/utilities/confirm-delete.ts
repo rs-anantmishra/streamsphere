@@ -32,6 +32,10 @@ export function confirmDelete(event: Event, contentId: number, deleteFn: (conten
                 } else {
                     messageService.add({ severity: 'error', summary: 'Failed', detail: 'Deleted Failed', life: 3000 });
                 }
+            }, (err: unknown) => {
+                //the request failed (server down, network drop, a reply that is not json) - nothing is known to be deleted
+                console.error('error: the delete request failed.', err)
+                messageService.add({ severity: 'error', summary: 'Failed', detail: 'Delete failed, please try again', life: 3000 });
             });
         },
         reject: () => {

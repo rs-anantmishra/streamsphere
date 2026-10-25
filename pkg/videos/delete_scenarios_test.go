@@ -255,3 +255,38 @@ func TestDeletingEveryVideoLeavesTheEmptyPlaylistRowButHidesIt(t *testing.T) {
 		t.Errorf("playlists = %+v, want the emptied playlist hidden", got)
 	}
 }
+
+// A statement that fails half-way must undo the ones before it and report failure; the files are only removed
+// for a delete that went through.
+
+func TestDeleteThatFailsHalfWayIsRolledBackAndTouchesNoFiles(t *testing.T) {
+	db, dir := newPlaylistsDB(t), t.TempDir()
+	addPlaylist(t, db, 1, "A playlist")
+	v := addVideoOnDisk(t, db, dir, 1, 1, 1)
+	before := rowsOf(t, db, 1)
+	// the tag and category rows go first; then removing the playlist link aborts
+	if _, err := db.Exec(`CREATE TRIGGER refuse_link_delete BEFORE DELETE ON tblPlaylistVideoFiles BEGIN SELECT RAISE(ABORT, 'refused'); END`); err != nil {
+		t.Fatal(err)
+	}
+
+	var ok bool
+	var err error
+	func() {
+		defer func() {
+			if r := recover(); r != nil {
+				t.Fatalf("the delete panicked: %v", r)
+			}
+		}()
+		ok, err = NewVideoService(NewVideoRepo(db)).DeleteContentById(1)
+	}()
+
+	if ok || err == nil {
+		t.Errorf("DeleteContentById() = %v, %v, want false and an error", ok, err)
+	}
+	if after := rowsOf(t, db, 1); fmt.Sprint(after) != fmt.Sprint(before) {
+		t.Errorf("rows after the failed delete: %v, want them all back as they were: %v", after, before)
+	}
+	if !fileExists(v.contentPath) || !fileExists(v.thumbnailPth) {
+		t.Error("a failed delete removed the video or thumbnail file")
+	}
+}

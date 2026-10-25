@@ -17,7 +17,11 @@ describe('confirmDelete', () => {
     });
 
     function run(deleteResult: any, onDeleted?: (id: number) => boolean | Promise<boolean>, redirectTo?: string) {
-        confirmDelete({ target: null } as any, 7, () => Promise.resolve(deleteResult),
+        runWith(() => Promise.resolve(deleteResult), onDeleted, redirectTo);
+    }
+
+    function runWith(deleteFn: (id: number) => Promise<any>, onDeleted?: (id: number) => boolean | Promise<boolean>, redirectTo?: string) {
+        confirmDelete({ target: null } as any, 7, deleteFn,
             confirmation as unknown as ConfirmationService, messages as unknown as MessageService, router as unknown as Router, { onDeleted, redirectTo });
         flushMicrotasks();
     }
@@ -87,4 +91,39 @@ describe('confirmDelete', () => {
         expect(onDeleted).not.toHaveBeenCalled();
         expect(router.navigate).not.toHaveBeenCalled();
     }));
+
+    describe('when the request itself fails', () => {
+        it('tells the user, and neither hands over nor leaves', fakeAsync(() => {
+            const error = spyOn(console, 'error');
+            const onDeleted = jasmine.createSpy('onDeleted').and.returnValue(true);
+
+            runWith(() => Promise.reject(new TypeError('Failed to fetch')), onDeleted);
+            tick(3000);
+
+            expect(messages.add).toHaveBeenCalledOnceWith(jasmine.objectContaining({ severity: 'error', summary: 'Failed', detail: 'Delete failed, please try again' }));
+            expect(error).toHaveBeenCalled();
+            expect(onDeleted).not.toHaveBeenCalled();
+            expect(router.navigate).not.toHaveBeenCalled();
+        }));
+
+        it('does the same when the reply cannot be read', fakeAsync(() => {
+            spyOn(console, 'error');
+
+            runWith(() => Promise.reject(new SyntaxError('Unexpected token < in JSON')));
+            tick(3000);
+
+            expect(messages.add).toHaveBeenCalledOnceWith(jasmine.objectContaining({ detail: 'Delete failed, please try again' }));
+            expect(router.navigate).not.toHaveBeenCalled();
+        }));
+
+        it('does not call a successful delete a failure when the page then misbehaves', fakeAsync(() => {
+            spyOn(console, 'error');
+
+            run({ data: true }, () => { throw new Error('page broke'); });
+            tick(3000);
+
+            expect(messages.add).toHaveBeenCalledOnceWith(jasmine.objectContaining({ detail: 'Content Deleted' }));
+            expect(router.navigate).toHaveBeenCalledWith(['/home']);
+        }));
+    });
 });
