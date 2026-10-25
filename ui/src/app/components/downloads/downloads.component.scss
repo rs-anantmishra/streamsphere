@@ -83,6 +83,11 @@
     min-width: 436px;
 }
 
+//the scrollbar sits at the panel's edge, so a thin side padding keeps it by the drawer edge instead of the cards
+::ng-deep .queued-box .p-drawer-content {
+    padding: 0 4px 20px;
+}
+
 .server-logs {
     width: 800px;
     height: 55px;

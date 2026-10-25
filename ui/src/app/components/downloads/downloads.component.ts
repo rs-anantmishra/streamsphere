@@ -1,5 +1,5 @@
 
-import { Component, OnInit, OnDestroy, effect } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, effect } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { InputGroupModule } from 'primeng/inputgroup';
 import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
@@ -11,7 +11,7 @@ import { CheckboxModule } from 'primeng/checkbox';
 import { PanelModule } from 'primeng/panel';
 import { CardModule } from 'primeng/card';
 import { DrawerModule } from 'primeng/drawer';
-import { ScrollPanelModule } from 'primeng/scrollpanel';
+import { ScrollPanel, ScrollPanelModule } from 'primeng/scrollpanel';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { ToastModule } from 'primeng/toast';
@@ -57,6 +57,7 @@ export class DownloadsComponent implements OnInit, OnDestroy {
 
     serverLogs: string;
     queuedItems: VideoData[] = []
+    @ViewChild('queueScroll') queueScroll?: ScrollPanel
     nilMetadata = new VideoData()
 
     loading: boolean = false;
@@ -269,6 +270,8 @@ export class DownloadsComponent implements OnInit, OnDestroy {
             this.startQueuePolling()
         }
         await this.svcDownload.getQueuedItems("queued").then(item => { this.queuedItems = item; })
+        //the scrollbar is only measured on mouse-enter and scroll, so it is told once the new cards are rendered
+        setTimeout(() => this.queueScroll?.refresh())
     }
 
     //keep the open drawer current

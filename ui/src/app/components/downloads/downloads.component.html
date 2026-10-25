@@ -50,7 +50,7 @@
 
 <div>
   <p-drawer [(visible)]="sidebarVisible" (onHide)="stopQueuePolling()" styleClass="queued-box" appendTo="body">
-    <p-scrollPanel class="queued-scrollable" [style]="{ width: '100%', height: 'calc(100vh - 150px)' }">
+    <p-scrollPanel #queueScroll class="queued-scrollable" [style]="{ width: '100%', height: 'calc(100vh - 150px)' }">
       <h2 class="queued-heading">Queued Downloads</h2>
       @if (this.queuedItems !== null && this.queuedItems.length > 0) {
         <div>

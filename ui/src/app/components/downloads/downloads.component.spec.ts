@@ -206,6 +206,17 @@ describe('DownloadsComponent status events', () => {
         expect(sharedData.setRefreshAutoCompleteValue).not.toHaveBeenCalled();
     });
 
+    it('re-measures the drawer scrollbar once new queued items are in', fakeAsync(() => {
+        const refresh = jasmine.createSpy('refresh');
+        component.queueScroll = { refresh } as any;
+
+        component.getQueuedItems(false);
+        tick();
+
+        expect(refresh).toHaveBeenCalledTimes(1);
+        fixture.destroy();
+    }));
+
     it('polls the queue while the drawer is open', fakeAsync(() => {
         const svc = fixture.debugElement.injector.get(DownloadService) as any;
         const spy = spyOn(svc, 'getQueuedItems').and.returnValue(Promise.resolve([]));
