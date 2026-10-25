@@ -131,11 +131,12 @@ func NetworkIngestMedia(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(result)
 }
 
-// downloadStatusResponse builds the status message; an idle item carries no details of the last download.
+// downloadStatusResponse builds the status message; an idle item keeps only what identifies the last download (id, title, channel, thumbnail),
+// so the page can show it again after a reload or a visit to another page.
 func downloadStatusResponse(item g.DownloadStatus) res.DownloadStatusResponse {
 	state := downloadState(item)
 	if state == "idle" {
-		return res.DownloadStatusResponse{State: state}
+		return res.DownloadStatusResponse{State: state, VideoId: item.VideoId, Title: item.Title, Channel: item.Channel, Thumbnail: item.Thumbnail}
 	}
 	return res.DownloadStatusResponse{
 		Message:   item.StatusMessage,

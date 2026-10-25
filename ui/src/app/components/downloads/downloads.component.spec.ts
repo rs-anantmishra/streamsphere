@@ -1,10 +1,12 @@
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
+import { Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { MessageService } from 'primeng/api';
 
 import { DownloadsComponent } from './downloads.component';
 import { DownloadService } from '../../services/download.service';
 import { FilesService } from '../../services/files.service';
+import { VideosService } from '../../services/videos.service';
 import { SharedDataService } from '../../services/shared-data.service';
 import { Messages } from '../../constants/messages';
 import { UrlEncode } from '../../utilities/url-encode';
@@ -118,6 +120,41 @@ describe('DownloadsComponent status events', () => {
         expect(component.activeDLTitle).toBe('A Title');
         expect(component.activeDLChannel).toBe('A Channel');
         expect(component.serverLogs).toBe('Download completed successfully.');
+    });
+
+    it('shows the last item named by an idle event on a fresh page', () => {
+        component.handleStatusEvent(statusEvent({ state: 'idle', video_id: 0, title: 'Last Title', channel: 'Last Channel', thumbnail: 'last.jpg' }));
+
+        expect(component.activeDLTitle).toBe('Last Title');
+        expect(component.activeDLChannel).toBe('Last Channel');
+        expect(component.activeDLImage).toBe('last.jpg');
+        expect(component.downloadPercent).toBeNull();
+    });
+
+    it('opens the video page for the last item once nothing is downloading', async () => {
+        const videosSvc = TestBed.inject(VideosService);
+        const video: any = { video_id: 7 };
+        spyOn(videosSvc, 'getContentById').and.resolveTo({ data: [video] } as any);
+        spyOn(sharedData, 'setPlayVideo');
+        const navigate = spyOn(TestBed.inject(Router), 'navigate').and.resolveTo(true);
+
+        component.handleStatusEvent(statusEvent({ state: 'idle', video_id: 7, title: 'Last Title' }));
+        expect(component.canPlayActive).toBeTrue();
+        await component.playActive();
+
+        expect(videosSvc.getContentById).toHaveBeenCalledWith(7);
+        expect(sharedData.setPlayVideo).toHaveBeenCalledWith(video);
+        expect(navigate).toHaveBeenCalledWith(['videos', 'play']);
+    });
+
+    it('does not open the video page while a download is running or before any item is known', () => {
+        expect(component.canPlayActive).toBeFalse();
+        component.handleStatusEvent(statusEvent({ state: 'downloading', video_id: 7 }));
+        expect(component.canPlayActive).toBeFalse();
+        component.handleStatusEvent(statusEvent({ state: 'saving', video_id: 7 }));
+        expect(component.canPlayActive).toBeFalse();
+        component.handleStatusEvent(statusEvent({ state: 'completed', video_id: 7 }));
+        expect(component.canPlayActive).toBeTrue();
     });
 
     it('keeps the default logs on idle when nothing is shown', () => {

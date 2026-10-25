@@ -30,7 +30,8 @@
     <p-fieldset legend="Information" [toggleable]="false">
       <div class="information-box">
         <div>
-          <img [src]="this.urlEncode.encodedUrl(activeDLImage)" class="info-image-size" />
+          <img [src]="this.urlEncode.encodedUrl(activeDLImage)" class="info-image-size"
+            [class.info-image-link]="canPlayActive" (click)="playActive()" />
         </div>
         <div class="information-details">
           <div class="download-details">

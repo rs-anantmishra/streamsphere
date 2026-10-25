@@ -28,11 +28,11 @@ func TestDownloadState(t *testing.T) {
 	}
 }
 
-func TestDownloadStatusResponseIdleCarriesNoDetails(t *testing.T) {
+func TestDownloadStatusResponseIdleCarriesLastItemIdentity(t *testing.T) {
 	last := g.DownloadStatus{VideoId: 42, Title: "T", Channel: "C", Thumbnail: "th.jpg", StatusMessage: ""}
 	got := downloadStatusResponse(last)
-	if got.State != "idle" || got.VideoId != 0 || got.Title != "" || got.Channel != "" || got.Thumbnail != "" {
-		t.Errorf("idle response = %+v, want state idle and no details", got)
+	if got.State != "idle" || got.VideoId != 42 || got.Title != "T" || got.Channel != "C" || got.Thumbnail != "th.jpg" {
+		t.Errorf("idle response = %+v, want state idle with only id, title, channel and thumbnail", got)
 	}
 
 	active := g.DownloadStatus{VideoURL: "u", VideoId: 42, Title: "T", Channel: "C", Thumbnail: "th.jpg", StatusMessage: "[download]  1.0% of 1MiB"}

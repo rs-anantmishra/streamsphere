@@ -6,6 +6,7 @@ import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
 import { InputTextModule } from 'primeng/inputtext';
 import { ButtonModule } from 'primeng/button';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { CheckboxModule } from 'primeng/checkbox';
 import { PanelModule } from 'primeng/panel';
 import { CardModule } from 'primeng/card';
@@ -30,6 +31,7 @@ import { SharedDataService, Operation } from '../../services/shared-data.service
 import { Messages, Severity } from '../../constants/messages'
 import { RemovePrefixPipe } from '../../utilities/pipes/remove-prefix.pipe'
 import { FilesService } from '../../services/files.service';
+import { VideosService } from '../../services/videos.service';
 import { FilesizeConversionPipe } from '../../utilities/pipes/filesize-conversion.pipe'
 import { DownloadStatusEvent } from '../../interfaces/download-status-event';
 import { parseDownloadPercent } from '../../utilities/parse-download-percent';
@@ -66,6 +68,7 @@ export class DownloadsComponent implements OnInit, OnDestroy {
     private failedIds = new Set<number>()
     private lastEvent?: DownloadStatusEvent
 
+    activeDLVideoId = 0
     activeDLImage = ''
     activeDLChannel = ''
     activeDLTitle = ''
@@ -83,6 +86,8 @@ export class DownloadsComponent implements OnInit, OnDestroy {
         private svcDownload: DownloadService,
         private svcFiles: FilesService,
         private sharedData: SharedDataService,
+        private svcVideos: VideosService,
+        private router: Router,
         readonly urlEncode: UrlEncode,
         private msg: Messages) {
 
@@ -105,12 +110,13 @@ export class DownloadsComponent implements OnInit, OnDestroy {
         this.finishEndedItem(event)
         this.lastEvent = event
 
-        //idle - leave the last item displayed
-        if (event.state === 'idle') { return }
-
+        //the server keeps naming the last item while idle, so it shows again after a reload or a visit to another page
+        this.activeDLVideoId = event.video_id || this.activeDLVideoId
         this.activeDLTitle = event.title || this.activeDLTitle
         this.activeDLChannel = event.channel || this.activeDLChannel
         this.activeDLImage = event.thumbnail || this.activeDLImage
+
+        if (event.state === 'idle') { return }
 
         //yt-dlp also reports warnings and blank lines while downloading - keep showing the last progress line
         const isProgressLine = event.state !== 'downloading' || event.download.includes(this.msg.downloadInfoIdentifier)
@@ -134,6 +140,22 @@ export class DownloadsComponent implements OnInit, OnDestroy {
             this.failedIds.add(event.video_id)
             this.showMessage('Download failed: ' + (event.title || event.download), 'error', 'error')
         }
+    }
+
+    //a video has its file in the library once its download is over (or nothing is running)
+    get canPlayActive(): boolean {
+        return this.activeDLVideoId > 0 && (this.lastEvent?.state === 'completed' || this.lastEvent?.state === 'idle')
+    }
+
+    async playActive() {
+        if (!this.canPlayActive) { return }
+        const result = await this.svcVideos.getContentById(this.activeDLVideoId)
+        if (result.data == null || result.data.length === 0) {
+            this.showMessage('This video is not in the library.', 'error', 'error')
+            return
+        }
+        this.sharedData.setPlayVideo(result.data[0])
+        this.router.navigate(['videos', 'play'])
     }
 
     //the server's completed message is short-lived and can fall between two status checks (or be lost to a reconnect)
