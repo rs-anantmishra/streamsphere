@@ -2,13 +2,12 @@ import { Injectable } from '@angular/core';
 import { VideoData, VideoDataRequest, QueueDownloads, VideoDataResponse } from '../classes/video-data';
 import { HttpClient } from '@angular/common/http';
 import { SharedDataService } from './shared-data.service';
-import { environment } from '../../environments/environment';
-import { Observable, repeat, retry } from 'rxjs';
+import { Observable, map, repeat, retry } from 'rxjs';
 import { webSocket } from 'rxjs/webSocket';
 import { DownloadStatusEvent } from '../interfaces/download-status-event';
-import { appBaseUrl, toWsUrl } from '../utilities/url-transforms';
+import { apiBaseUrl, toWsUrl, withContentLinks } from '../utilities/url-transforms';
 
-const apiUrl: string = appBaseUrl(environment.baseUrl) + "/api"
+const apiUrl: string = apiBaseUrl() + "/api"
 
 @Injectable({
     providedIn: 'root'
@@ -19,8 +18,8 @@ export class DownloadService {
 
     // live download status; each subscription opens its own socket and reconnects after error (retry) and clean close (repeat)
     statusEvents(): Observable<DownloadStatusEvent> {
-        const wsUrl = toWsUrl(appBaseUrl(environment.baseUrl)) + "/ws/status"
-        return webSocket<DownloadStatusEvent>(wsUrl).pipe(retry({ delay: 2000 }), repeat({ delay: 2000 }))
+        const wsUrl = toWsUrl(apiBaseUrl()) + "/ws/status"
+        return webSocket<DownloadStatusEvent>(wsUrl).pipe(map(withContentLinks), retry({ delay: 2000 }), repeat({ delay: 2000 }))
     }
 
     //metadata
@@ -34,7 +33,7 @@ export class DownloadService {
             headers: {
                 'Content-Type': 'application/json'
             }
-        }).then(response => { return response.json(); });
+        }).then(response => response.json()).then(withContentLinks);
     }
 
     //media
@@ -57,7 +56,7 @@ export class DownloadService {
         return fetch(apiUrl + url + queryParams, {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' }
-        }).then(response => { return response.json(); });
+        }).then(response => response.json()).then(withContentLinks);
     }
 
 }
