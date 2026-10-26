@@ -6,8 +6,9 @@ import { environment } from '../../environments/environment';
 import { Observable, repeat, retry } from 'rxjs';
 import { webSocket } from 'rxjs/webSocket';
 import { DownloadStatusEvent } from '../interfaces/download-status-event';
+import { appBaseUrl, toWsUrl } from '../utilities/url-transforms';
 
-const apiUrl: string = environment.baseUrl + "/api"
+const apiUrl: string = appBaseUrl(environment.baseUrl) + "/api"
 
 @Injectable({
     providedIn: 'root'
@@ -18,7 +19,7 @@ export class DownloadService {
 
     // live download status; each subscription opens its own socket and reconnects after error (retry) and clean close (repeat)
     statusEvents(): Observable<DownloadStatusEvent> {
-        const wsUrl = environment.baseUrl.replace("http://", "ws://") + "/ws/status"
+        const wsUrl = toWsUrl(appBaseUrl(environment.baseUrl)) + "/ws/status"
         return webSocket<DownloadStatusEvent>(wsUrl).pipe(retry({ delay: 2000 }), repeat({ delay: 2000 }))
     }
 

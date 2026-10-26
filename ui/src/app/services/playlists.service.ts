@@ -5,8 +5,9 @@ import { PlaylistsInfo, PlaylistsDataResponse } from '../classes/playlists';
 import { VideoData, VideoDataResponse } from '../classes/video-data';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { appBaseUrl } from '../utilities/url-transforms';
 
-const apiUrl: string = environment.baseUrl + "/api"
+const apiUrl: string = appBaseUrl(environment.baseUrl) + "/api"
 
 @Injectable({
     providedIn: 'root'

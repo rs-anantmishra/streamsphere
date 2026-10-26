@@ -5,8 +5,9 @@ import { VideoData, VideoDataRequest, QueueDownloads, VideoDataResponse } from '
 import { BehaviorSubject, Observable, Subscription } from 'rxjs'
 import { ContentSearch, ContentSearchResponse } from '../classes/search';
 import { environment } from '../../environments/environment';
+import { appBaseUrl } from '../utilities/url-transforms';
 
-const apiUrl: string = environment.baseUrl + "/api"
+const apiUrl: string = appBaseUrl(environment.baseUrl) + "/api"
 
 @Injectable({
     providedIn: 'root'

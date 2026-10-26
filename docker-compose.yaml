@@ -8,8 +8,15 @@ services:
       - 1282:3000
     environment:
       HOST_IP: "192.168.1.15"
-      APPLICATION_PORT: "1282"
       CONTENT_PORT: "1288"
+      # APPLICATION_PORT: "1282"
+      #   no longer needed: the UI calls the address it was opened at, and the port you open is the left side of
+      #   "ports" above. Before 0.1.18 it was used to build the UI's API url.
+      # API_URL: "https://api.example.com"
+      #   only when the UI is hosted apart from the API (for example a static host or CDN); otherwise leave it out.
+      # PROTOCOL: "https"
+      #   set when users reach Streamsphere over https (behind a proxy). Content links follow it, because an https
+      #   page can't load http content. The UI itself takes its protocol from the address it was opened at.
     volumes:
       - db-data:/app/database/db
       - content-data:/app/content
