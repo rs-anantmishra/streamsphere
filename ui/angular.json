@@ -107,7 +107,7 @@
                     },
                     "defaultConfiguration": "development",
                     "options": {
-                        "proxyConfig": "src/proxy.conf.mjs"
+                        "proxyConfig": "proxy.config.js"
                     }
                 },
                 "extract-i18n": {
