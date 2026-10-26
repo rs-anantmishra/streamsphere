@@ -54,7 +54,7 @@
   <div class="content-extras">
     <p-fieldset [toggleable]="true">
       <ng-template pTemplate="header">
-        @if (this.playlist?.info) {
+        @if (this.playlist.info.playlist_title) {
           <span
           class="fieldset-header">{{this.playlist.info.playlist_title}}</span>
         }

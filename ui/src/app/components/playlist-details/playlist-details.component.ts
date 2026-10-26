@@ -42,7 +42,8 @@ export class PlaylistDetailsComponent implements OnInit, OnDestroy {
 
     fieldsetVideoClass = ''
     isDarkMode!: boolean;
-    playlist!: SelectedPlaylist;
+    //empty until a playlist has been picked; ngOnInit redirects when none was
+    playlist: SelectedPlaylist = new SelectedPlaylist();
     data!: any;
     // subscription!: Subscription;
     public player: any;
@@ -61,13 +62,14 @@ export class PlaylistDetailsComponent implements OnInit, OnDestroy {
 
     async ngOnInit(): Promise<void> {
         this.isDarkMode = this.svcSharedData.getIsDarkMode()
-        this.playlist = this.svcSharedData.getPlaylist();
+        const selected = this.svcSharedData.getPlaylist();
 
         //nothing is saved when this page is opened without picking a playlist first
-        if (!this.playlist?.info) {
+        if (!selected?.info) {
             this.router.navigate(['/playlists'])
             return
         }
+        this.playlist = selected;
 
         await this.loadPlaylistVideos();
         //the page was left while the videos were loading - there is nothing to set up any more
