@@ -1,4 +1,4 @@
-import { addressUrl, apiAddress, contentAddress, contentLink, linkContent, toWsUrl } from './url-transforms';
+import { addressUrl, apiAddress, apiUnreachableMessage, contentAddress, contentLink, linkContent, toWsUrl } from './url-transforms';
 
 describe('toWsUrl', () => {
     it('turns http into ws and keeps the port', () => {
@@ -142,5 +142,15 @@ describe('linkContent', () => {
 
     it('leaves other fields and non-string values alone', () => {
         expect(linkContent({ title: '/keep', thumbnail: null }, link)).toEqual({ title: '/keep', thumbnail: null });
+    });
+});
+
+describe('apiUnreachableMessage', () => {
+    it('names the address that was tried and the settings to check', () => {
+        const message = apiUnreachableMessage('http://localhost:1299');
+        expect(message).toContain('http://localhost:1299');
+        expect(message).toContain('PROTOCOL');
+        expect(message).toContain('APPLICATION_IP');
+        expect(message).toContain('APPLICATION_PORT');
     });
 });

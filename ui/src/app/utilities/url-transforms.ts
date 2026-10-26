@@ -72,3 +72,8 @@ export function apiBaseUrl(): string {
 export function withContentLinks<T>(value: T): T {
     return linkContent(value, path => contentLink(path, contentAddress(environment)))
 }
+
+// what the library and playlists pages say when the api cannot be reached at all
+export function apiUnreachableMessage(address: string): string {
+    return 'Cannot reach the Streamsphere API at ' + address + '. Check PROTOCOL, APPLICATION_IP and APPLICATION_PORT in your docker compose file.'
+}
