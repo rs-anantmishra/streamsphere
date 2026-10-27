@@ -4,10 +4,9 @@ import { SharedDataService } from './shared-data.service';
 import { PlaylistsInfo, PlaylistsDataResponse } from '../classes/playlists';
 import { VideoData, VideoDataResponse } from '../classes/video-data';
 import { Observable } from 'rxjs';
-import { environment } from '../../environments/environment';
-import { appBaseUrl } from '../utilities/url-transforms';
+import { apiBaseUrl, withContentLinks } from '../utilities/url-transforms';
 
-const apiUrl: string = appBaseUrl(environment.baseUrl) + "/api"
+const apiUrl: string = apiBaseUrl() + "/api"
 
 @Injectable({
     providedIn: 'root'
@@ -25,7 +24,7 @@ export class PlaylistsService {
             headers: {
                 'Content-Type': 'application/json'
             }
-        }).then(response => { return response.json(); })
+        }).then(response => response.json()).then(withContentLinks)
 
     }
 
@@ -38,7 +37,7 @@ export class PlaylistsService {
             headers: {
                 'Content-Type': 'application/json'
             }
-        }).then(response => { return response.json(); })
+        }).then(response => response.json()).then(withContentLinks)
 
     }
 

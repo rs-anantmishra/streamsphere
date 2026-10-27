@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gofiber/contrib/websocket"
@@ -41,9 +42,25 @@ func SetupMiddleware(app *fiber.App) {
 		return fiber.ErrUpgradeRequired
 	})
 
+	//the built UI
+	serveStatic(app, http.Dir("../browser/"))
+}
+
+// serveStatic serves the built UI from root
+func serveStatic(app *fiber.App, root http.FileSystem) {
+	// index.html and main-*.js hold the addresses of the environment: the entrypoint rewrites main-*.js at every start
+	// under the same file name, so a browser must ask again for them instead of keeping them for the hour
+	app.Use(func(c *fiber.Ctx) error {
+		err := c.Next()
+		if path := c.Path(); path == "/" || path == "/index.html" || strings.HasPrefix(path, "/main-") {
+			c.Set(fiber.HeaderCacheControl, "no-cache")
+		}
+		return err
+	})
+
 	// Or extend your config for customization
 	app.Use(filesystem.New(filesystem.Config{
-		Root:   http.Dir("../browser/"),
+		Root:   root,
 		Browse: false,
 		Index:  "index.html",
 		MaxAge: 3600,
