@@ -22,11 +22,13 @@ EOF
 WORKDIR /app/browser
 RUN cp /app-code/ui/dist/ui/browser/ /app/ -rv
 
-# get latest yt-dlp
+# get latest yt-dlp; a failed or cut-off download stops the build instead of shipping a broken file
 WORKDIR /app/utils
 RUN <<EOF
+set -e
 wget https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux
 chmod +x /app/utils/yt-dlp_linux
+/app/utils/yt-dlp_linux --version
 EOF
 
 # make directories and copy required files
