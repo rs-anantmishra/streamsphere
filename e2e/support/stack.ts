@@ -12,6 +12,7 @@ export const PORTS = {
     tlsApp: Number(process.env.E2E_TLS_APP_PORT ?? 8443),
     tlsContent: Number(process.env.E2E_TLS_CONTENT_PORT ?? 8444),
     bare: Number(process.env.E2E_BARE_PORT ?? 1292),
+    boundContent: Number(process.env.E2E_BOUND_CONTENT_PORT ?? 1293),
 };
 export const IMAGE = process.env.STREAMSPHERE_IMAGE ?? 'streamsphere/streamsphere:local-https';
 export const CONTENT_IMAGE = process.env.STREAMSPHERE_CONTENT_IMAGE ?? 'streamsphere/streamsphere-content:0.1.3';
@@ -113,6 +114,7 @@ ${tls(PORTS.tlsContent, 'streamsphere.localhost', '', PORTS.content)}
 export async function tearDown() {
     const dir = process.env.E2E_DIR;
     if (!dir) { return }
+    removeBound();
     compose(['down', '-v'], true);
     const pid = path.join(dir, 'nginx.pid');
     if (fs.existsSync(pid)) { run('kill', [fs.readFileSync(pid, 'utf8').trim()], { allowFail: true }) }
@@ -161,3 +163,47 @@ export function runContainer(name: string, image: string, hostPort: number, env:
 }
 export const removeContainer = (name: string) => run('docker', ['rm', '-f', name], { allowFail: true });
 export const containerLogs = (name: string) => run('docker', ['logs', name], { allowFail: true }).out;
+
+// a fresh install on host folders (bind mounts) instead of named volumes, as some users run it (#47): an app and a
+// content server sharing one content folder, next to the stack. A bind mount hides what the image has at the mount point
+export const BOUND = { app: `${PROJECT}-bound`, content: `${PROJECT}-bound-content` };
+const boundRoot = () => path.join(workDir(), 'bound');
+
+// empty host folders for a new install; anything a previous one left is removed first
+export function boundFolders() {
+    removeBound();
+    const folders = { db: path.join(boundRoot(), 'db'), content: path.join(boundRoot(), 'content') };
+    fs.mkdirSync(folders.db, { recursive: true });
+    fs.mkdirSync(folders.content, { recursive: true });
+    return folders;
+}
+
+// starts both containers on the folders; resolves once the app is serving or has exited
+export async function startBound(folders: { db: string, content: string }, opts: { readOnlyDb?: boolean } = {}): Promise<Started> {
+    run('docker', ['run', '-d', '--name', BOUND.content, '-p', `${PORTS.boundContent}:3500`, '-v', `${folders.content}:/content`, CONTENT_IMAGE]);
+    run('docker', ['run', '-d', '--name', BOUND.app, '-p', `${PORTS.bare}:3000`,
+        '-v', `${folders.db}:/app/database/db${opts.readOnlyDb ? ':ro' : ''}`, '-v', `${folders.content}:/app/content`,
+        '-e', `APPLICATION_PORT=${PORTS.bare}`, '-e', `CONTENT_PORT=${PORTS.boundContent}`, IMAGE]);
+    const state = () => run('docker', ['inspect', '-f', '{{.State.Status}}', BOUND.app], { allowFail: true }).out.trim();
+    // a new container updates yt-dlp before it serves, which can take a while
+    for (let i = 0; i < 180; i++) {
+        if (state() === 'exited' || containerLogs(BOUND.app).includes('Connected to database')) { break }
+        await sleep(1000);
+    }
+    return {
+        state: state(),
+        exitCode: Number(run('docker', ['inspect', '-f', '{{.State.ExitCode}}', BOUND.app], { allowFail: true }).out.trim()),
+        logs: containerLogs(BOUND.app),
+    };
+}
+
+// removes both containers and their files; the containers write as root, so the files go through a container too
+export function removeBound() {
+    removeContainer(BOUND.app);
+    removeContainer(BOUND.content);
+    const root = process.env.E2E_DIR && path.join(process.env.E2E_DIR, 'bound');
+    if (root && fs.existsSync(root)) {
+        run('docker', ['run', '--rm', '-v', `${root}:/bound`, '--entrypoint', 'rm', IMAGE, '-rf', '/bound/db', '/bound/content'], { allowFail: true });
+        fs.rmSync(root, { recursive: true, force: true });
+    }
+}

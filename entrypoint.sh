@@ -30,6 +30,19 @@ echo "api: ${applicationIp:-page host}:${applicationPort}"
 echo "content: ${contentIp:-${applicationIp:-page host}}:${contentPort}"
 # urls-end
 
+# database-begin
+# a bind mount hides what the image has at /app/database/db, so the image keeps its empty database in
+# /app/database/template and a first start copies it in (#47); a database with content is never touched
+if [ ! -s /app/database/db/streamsphere.db ]; then
+  if cp /app/database/template/streamsphere.db /app/database/db/streamsphere.db; then
+    echo "database: created /app/database/db/streamsphere.db"
+  else
+    echo "database: cannot create /app/database/db/streamsphere.db. Check that the folder mounted at /app/database/db is writable. Application cannot start."
+    exit 1
+  fi
+fi
+# database-end
+
 cd /app/browser
 mainfile=$(ls main-*.js)
 # echo "mainfile is: $mainfile"
