@@ -51,6 +51,37 @@ check "APPLICATION_IP wins over HOST_IP" "|10.0.0.5|1282||1288" HOST_IP=192.168.
 check_says "HOST_IP is announced as deprecated" "HOST_IP is deprecated, using it as APPLICATION_IP" HOST_IP=192.168.1.15 APPLICATION_PORT=1282 CONTENT_PORT=1288
 check_says "HOST_IP next to APPLICATION_IP is announced as ignored" "HOST_IP is deprecated and ignored, APPLICATION_IP is set" HOST_IP=192.168.1.15 APPLICATION_IP=10.0.0.5 APPLICATION_PORT=1282 CONTENT_PORT=1288
 
+# the database block (between the database-begin/database-end markers) copies the image's empty database into
+# the mounted folder when that has none (#47); it runs here against a temp folder in place of /app/database
+echo "--- database"
+db_block=$(sed -n '/# database-begin/,/# database-end/p' entrypoint.sh)
+db_root=$(mktemp -d)
+trap 'chmod -R u+w "$db_root"; rm -rf "$db_root"' EXIT
+
+# usage: run_db <case folder>; sets up <case>/template/streamsphere.db, runs the block, prints its output
+run_db() {
+    local root=$db_root/$1
+    mkdir -p "$root/template" "$root/db"
+    echo "template" > "$root/template/streamsphere.db"
+    bash -c "${db_block//\/app\/database/$root}"$'\n''echo started' 2>&1
+}
+
+out=$(run_db missing)
+if [ "$(cat "$db_root/missing/db/streamsphere.db" 2>/dev/null)" = "template" ] && [[ "$out" == *started* ]]; then echo "ok   a missing database is copied from the image"; else echo "FAIL a missing database is copied from the image"; echo "  got: $out"; fail=1; fi
+
+mkdir -p "$db_root/empty/db" && : > "$db_root/empty/db/streamsphere.db"
+out=$(run_db empty)
+if [ "$(cat "$db_root/empty/db/streamsphere.db")" = "template" ] && [[ "$out" == *started* ]]; then echo "ok   an empty (0 byte) database is replaced"; else echo "FAIL an empty (0 byte) database is replaced"; echo "  got: $out"; fail=1; fi
+
+mkdir -p "$db_root/kept/db" && echo "user data" > "$db_root/kept/db/streamsphere.db"
+out=$(run_db kept)
+if [ "$(cat "$db_root/kept/db/streamsphere.db")" = "user data" ] && [[ "$out" == *started* ]]; then echo "ok   a database with content is never touched"; else echo "FAIL a database with content is never touched"; echo "  got: $out"; fail=1; fi
+
+mkdir -p "$db_root/readonly/db" && chmod a-w "$db_root/readonly/db"
+out=$(run_db readonly)
+status=$?
+if [ $status -ne 0 ] && [[ "$out" != *started* ]] && [[ "$out" == *"$db_root/readonly/db"* ]] && [[ "$out" == *"cannot start"* ]]; then echo "ok   a folder it cannot write to stops the start and names the folder"; else echo "FAIL a folder it cannot write to stops the start and names the folder"; echo "  got status $status: $out"; fail=1; fi
+
 # envsubst replaces these five names everywhere in the built bundle, not only in environment.ts, so no other
 # source file may contain them in the ${name} form (a template literal would be emptied inside the container)
 echo "--- bundle collisions"

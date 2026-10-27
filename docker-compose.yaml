@@ -33,6 +33,8 @@ services:
       CONTENT_PORT: "1288"
     volumes:
       - db-data:/app/database/db
+      # if you use a folder on your machine instead of content-data, use the same folder here
+      # and in the volumes section of the content service below, or videos and thumbnails will not show
       - content-data:/app/content
   content:
     image: streamsphere/streamsphere-content:latest

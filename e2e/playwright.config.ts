@@ -25,5 +25,6 @@ export default defineConfig({
     projects: [
         { name: 'seed', testMatch: /seed\.spec\.ts/ },
         { name: 'scenarios', testMatch: /(scenarios|old-image|queue-drawer|unsubstituted|upgrade|cache)\.spec\.ts/, dependencies: ['seed'] },
+        { name: 'install', testMatch: /install\.spec\.ts/ },
     ],
 });
