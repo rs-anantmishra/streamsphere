@@ -4,9 +4,9 @@ import { SharedDataService } from './shared-data.service';
 import { VideoData, VideoDataRequest, QueueDownloads, VideoDataResponse } from '../classes/video-data';
 import { BehaviorSubject, Observable, Subscription } from 'rxjs'
 import { ContentSearch, ContentSearchResponse } from '../classes/search';
-import { environment } from '../../environments/environment';
+import { apiBaseUrl, withContentLinks } from '../utilities/url-transforms';
 
-const apiUrl: string = environment.baseUrl + "/api"
+const apiUrl: string = apiBaseUrl() + "/api"
 
 @Injectable({
     providedIn: 'root'
@@ -24,7 +24,7 @@ export class VideosService {
             headers: {
                 'Content-Type': 'application/json'
             }
-        }).then(response => { return response.json(); })
+        }).then(response => response.json()).then(withContentLinks)
 
     }
 
@@ -50,7 +50,7 @@ export class VideosService {
                 'Content-Type': 'application/json',
                 'Access-Control': 'Allow-Origin'
             }
-        }).then(response => { return response.json(); })
+        }).then(response => response.json()).then(withContentLinks)
 
     }
 

@@ -22,25 +22,28 @@ EOF
 WORKDIR /app/browser
 RUN cp /app-code/ui/dist/ui/browser/ /app/ -rv
 
-# get latest yt-dlp
+# get latest yt-dlp; a failed or cut-off download stops the build instead of shipping a broken file
 WORKDIR /app/utils
 RUN <<EOF
+set -e
 wget https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux
 chmod +x /app/utils/yt-dlp_linux
+/app/utils/yt-dlp_linux --version
 EOF
 
 # make directories and copy required files
 WORKDIR /app
 RUN <<EOF
-mkdir ./database/scripts ./database/db -p
+mkdir ./database/scripts ./database/db ./database/template -p
 cp /app-code/database/scripts/* /app/database/scripts/
 cp /app-code/.env /app/.env
 cp /app-code/entrypoint.sh /app/entrypoint.sh
 mkdir application content
 EOF
 
-# init database
-WORKDIR /app/database/db
+# init database outside the mounted folder: a bind mount hides what the image has at /app/database/db,
+# so entrypoint.sh copies this one in when that folder has no database (#47)
+WORKDIR /app/database/template
 RUN <<EOF
 sqlite3 streamsphere.db < ../scripts/create.sql | bash
 sqlite3 streamsphere.db < ../scripts/seed.sql | bash

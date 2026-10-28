@@ -3,15 +3,38 @@ services:
     image: streamsphere/streamsphere:latest
     # image: streamsphere/streamsphere:latest-arm
     container_name: streamsphere
+    # if this container keeps restarting, a required setting is missing: run "docker logs streamsphere" to see which
     restart: unless-stopped
     ports:
       - 1282:3000
     environment:
-      HOST_IP: "192.168.1.15"
+      #   http or https for both; unset is the protocol you opened Streamsphere with.
+      #   The address you opened Streamsphere at always keeps the protocol you opened it with, PROTOCOL applies to the rest.
+      #   Examples: PROTOCOL "https" for content at content.example.com while the page is on http; "http" for content on a LAN IP.
+      # PROTOCOL: "https"
+
+      # APPLICATION_IP is optional. Leave it out and Streamsphere uses the same address you typed in your browser
+      # to open it. For example, if you opened http://192.168.1.15:1282, the web page talks to the API at
+      # 192.168.1.15 on APPLICATION_PORT. Set it only when the API has a different address than the page,
+      # for example the page is opened at ui.example.com and the API is at api.example.com.
+      # APPLICATION_IP: "192.168.1.15"  or  "streamsphere.example.com"   (an IP or a hostname)
+
+      # APPLICATION_PORT is required. It is the port you open Streamsphere on, the left side of the "ports"
+      # mapping above. For example, "1282:3000" means APPLICATION_PORT is "1282".
       APPLICATION_PORT: "1282"
+
+      # CONTENT_IP is optional. Leave it out and the content (videos, thumbnails) comes from APPLICATION_IP,
+      # or from the address you opened Streamsphere at when that is not set either. Set it only when the content
+      # server has a different address than the API, for example the content is at content.example.com.
+      # CONTENT_IP: "192.168.1.15"  or  "content.example.com"   (an IP or a hostname)
+
+      # CONTENT_PORT is required. It is the port of the content server, the left side of the "ports" mapping
+      # of the content service below. For example, "1288:3500" means CONTENT_PORT is "1288".
       CONTENT_PORT: "1288"
     volumes:
       - db-data:/app/database/db
+      # if you use a folder on your machine instead of content-data, use the same folder here
+      # and in the volumes section of the content service below, or videos and thumbnails will not show
       - content-data:/app/content
   content:
     image: streamsphere/streamsphere-content:latest

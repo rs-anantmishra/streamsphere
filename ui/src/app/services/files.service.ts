@@ -2,9 +2,9 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { SharedDataService } from './shared-data.service';
 import { StorageStatus, StorageStatusResponse } from '../classes/storage';
-import { environment } from '../../environments/environment';
+import { apiBaseUrl } from '../utilities/url-transforms';
 
-const apiUrl: string = environment.baseUrl + "/api"
+const apiUrl: string = apiBaseUrl() + "/api"
 
 @Injectable({
     providedIn: 'root'

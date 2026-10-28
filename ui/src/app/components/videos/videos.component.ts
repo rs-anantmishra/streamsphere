@@ -11,6 +11,7 @@ import { SharedDataService } from '../../services/shared-data.service'
 import { VideosService } from '../../services/videos.service'
 import { CommonModule } from '@angular/common';
 import { Subscription } from 'rxjs';
+import { apiBaseUrl, apiUnreachableMessage } from '../../utilities/url-transforms';
 
 @Component({
     selector: 'app-videos',
@@ -30,6 +31,9 @@ export class VideosComponent implements OnInit, OnDestroy {
     rows: number = 10;
     totalRecords: number = -1
     loadPage: number = -1
+
+    //shown instead of the library when the api cannot be reached (totalRecords is -2 then)
+    unreachableMessage = ''
 
     //videos presenter
     lstVideos: any
@@ -54,12 +58,20 @@ export class VideosComponent implements OnInit, OnDestroy {
     }
 
     async getAllVideos() {
-        let result = await this.svcVideos.getAllVideos();
-        if (result !== null && result.length > 0) {
-            this.svcSharedData.setlstVideos(result)
-            this.lstVideos = this.getPagedResult(this.first, this.rows);
-        } else if (result === null) {
-            this.totalRecords = 0
+        try {
+            let result = await this.svcVideos.getAllVideos();
+            if (result !== null && result.length > 0) {
+                this.svcSharedData.setlstVideos(result)
+                this.lstVideos = this.getPagedResult(this.first, this.rows);
+            } else if (result === null) {
+                this.totalRecords = 0
+            }
+        } catch (err) {
+            //fetch rejects with a TypeError when nothing answers; anything else is not a connection problem
+            if (!(err instanceof TypeError)) { throw err }
+            console.error('error: the api cannot be reached.', err)
+            this.unreachableMessage = apiUnreachableMessage(apiBaseUrl())
+            this.totalRecords = -2
         }
     }
 

@@ -158,11 +158,10 @@ func getPlaylistsPageInfo(playlists []entities.Playlist) []presenter.PlaylistsIn
 }
 
 func urlTransforms(url string) string {
-	filesHost := config.Config("FILE_HOSTING", false)
 	defaultFilesPath := config.Config("MEDIA_PATH", true)
 
-	//change media directory to public url
-	url = strings.ReplaceAll(url, defaultFilesPath, filesHost)
+	//the content host is added by the ui, so only the path below the media directory is returned
+	url = strings.ReplaceAll(url, defaultFilesPath, "")
 
 	//direction of slashes for url formation
 	url = strings.ReplaceAll(url, "\\", "/")

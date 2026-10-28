@@ -9,6 +9,7 @@ import { ScrollPanelModule } from 'primeng/scrollpanel';
 import { PlaylistCardComponent } from "../playlist-card/playlist-card.component";
 import { Subscription } from 'rxjs';
 import { PlaylistsService } from '../../services/playlists.service';
+import { apiBaseUrl, apiUnreachableMessage } from '../../utilities/url-transforms';
 
 
 interface PageEvent {
@@ -34,6 +35,8 @@ export class PlaylistsComponent implements OnInit {
     first: number = 0;
     rows: number = 10;
     totalRecords: number = -1
+    //shown instead of the playlists when the api cannot be reached (totalRecords is -2 then)
+    unreachableMessage = ''
     loadPage: number = -1
 
     @ViewChild('paginator', { static: false }) paginator!: Paginator
@@ -72,7 +75,13 @@ export class PlaylistsComponent implements OnInit {
             }
         } catch (err) {
             console.error('error: failed to load playlists.', err)
-            this.totalRecords = 0
+            //fetch rejects with a TypeError when nothing answers; the page must not claim the library is empty then
+            if (err instanceof TypeError) {
+                this.unreachableMessage = apiUnreachableMessage(apiBaseUrl())
+                this.totalRecords = -2
+            } else {
+                this.totalRecords = 0
+            }
         }
     }
 

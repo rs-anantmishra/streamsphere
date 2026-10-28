@@ -38,6 +38,17 @@
         }
 
         <!-- <ng-template #empty> -->
+        @case (-2) {
+            <div>
+                <div class="fullpage-empty">
+                    <div class="empty-library unreachable">
+                        {{ unreachableMessage }}
+                    </div>
+                </div>
+            </div>
+        }
+
+        <!-- <ng-template #empty> -->
         @case (-1) {
             <div class="spinner">
                 <p-progressSpinner ariaLabel="loading" />

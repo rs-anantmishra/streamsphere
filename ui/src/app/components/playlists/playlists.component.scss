@@ -77,6 +77,14 @@
     }
 }
 
+// the api cannot be reached: a long message, so the same box with smaller, centred text
+.empty-library.unreachable {
+    font-size: 28px;
+    text-align: center;
+    padding: 0 40px;
+    box-sizing: border-box;
+}
+
 .spinner {
     display: flex;
     width: 100%;

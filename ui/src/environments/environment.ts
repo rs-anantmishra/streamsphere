@@ -3,14 +3,19 @@ export const environment = {
     production: true,
     development: false,
     environmentName:"PROD",
-    baseUrl: '${baseUrl}',
-    apiUrl: '${apiUrl}',
-    contentUrl: '${contentUrl}',    
+    // filled in by entrypoint.sh from the docker compose environment; empty means "same as the page"
+    protocol: '${protocol}',
+    applicationIp: '${applicationIp}',
+    applicationPort: '${applicationPort}',
+    contentIp: '${contentIp}',
+    contentPort: '${contentPort}',
 };
 
 // environment.ts
 export interface Environment {
-    apiUrl: string;
-    baseUrl: string;
-    contentUrl: string;
+    protocol: string;
+    applicationIp: string;
+    applicationPort: string;
+    contentIp: string;
+    contentPort: string;
   }

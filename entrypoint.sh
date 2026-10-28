@@ -1,36 +1,53 @@
 #!/bin/bash
 
-APP_PROTOCOL='http://'
-export apiUrl=${APP_PROTOCOL}${HOST_IP}:${APPLICATION_PORT}
-echo $apiUrl
-export baseUrl=${APP_PROTOCOL}${HOST_IP}:${APPLICATION_PORT}
-echo $baseUrl
-export contentUrl=${APP_PROTOCOL}${HOST_IP}:${CONTENT_PORT}
-echo $contentUrl
-
-export FILE_HOSTING=$contentUrl
-
-# Replace placeholders in main-*.js with actual environment variable values
-if [ -z "$apiUrl" ]; then
-  echo "apiUrl environment variable is not set. Application cannot start."
-  exit 1;
+# urls-begin
+# HOST_IP of compose files up to 0.1.17 is read as APPLICATION_IP
+if [ -n "$HOST_IP" ] && [ -z "$APPLICATION_IP" ]; then
+  echo "HOST_IP is deprecated, using it as APPLICATION_IP"
+  APPLICATION_IP=$HOST_IP
+elif [ -n "$HOST_IP" ]; then
+  echo "HOST_IP is deprecated and ignored, APPLICATION_IP is set"
 fi
 
-if [ -z "$baseUrl" ]; then
-  echo "baseUrl environment variable is not set. Application cannot start."
-  exit 1;
+# both ports are always required: the left sides of the two "ports" mappings
+if [ -z "$APPLICATION_PORT" ]; then
+  echo "APPLICATION_PORT is not set. Set it to the port you open Streamsphere on (the left side of the \"ports\" mapping). Application cannot start."
+  exit 1
+fi
+if [ -z "$CONTENT_PORT" ]; then
+  echo "CONTENT_PORT is not set. Set it to the port of the content server (the left side of the content \"ports\" mapping). Application cannot start."
+  exit 1
 fi
 
-if [ -z "$contentUrl" ]; then
-  echo "contentUrl environment variable is not set. Application cannot start."
-  exit 1;
+# what is not set (protocol, the ips) is taken from the address the page was opened at, by the ui
+export protocol=${PROTOCOL%%://*}
+export applicationIp=$APPLICATION_IP
+export applicationPort=$APPLICATION_PORT
+export contentIp=$CONTENT_IP
+export contentPort=$CONTENT_PORT
+echo "protocol: ${protocol:-same as the page}"
+echo "api: ${applicationIp:-page host}:${applicationPort}"
+echo "content: ${contentIp:-${applicationIp:-page host}}:${contentPort}"
+# urls-end
+
+# database-begin
+# a bind mount hides what the image has at /app/database/db, so the image keeps its empty database in
+# /app/database/template and a first start copies it in (#47); a database with content is never touched
+if [ ! -s /app/database/db/streamsphere.db ]; then
+  if cp /app/database/template/streamsphere.db /app/database/db/streamsphere.db; then
+    echo "database: created /app/database/db/streamsphere.db"
+  else
+    echo "database: cannot create /app/database/db/streamsphere.db. Check that the folder mounted at /app/database/db is writable. Application cannot start."
+    exit 1
+  fi
 fi
+# database-end
 
 cd /app/browser
 mainfile=$(ls main-*.js)
 # echo "mainfile is: $mainfile"
 # Run envsubst to replace placeholders in main-*.jx with actual environment variable values
-envsubst '${apiUrl},${baseUrl},${contentUrl}' < ./${mainfile} > ./${mainfile}.tmp && \
+envsubst '${protocol},${applicationIp},${applicationPort},${contentIp},${contentPort}' < ./${mainfile} > ./${mainfile}.tmp && \
 mv ./${mainfile}.tmp ./${mainfile}
 
 # update yt-dlp

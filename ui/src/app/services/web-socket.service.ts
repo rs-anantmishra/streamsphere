@@ -1,8 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Socket } from 'ngx-socket-io';
-import { environment } from '../../environments/environment';
-
-const apiUrl: string = environment.baseUrl + "/api"
+import { apiBaseUrl, toWsUrl } from '../utilities/url-transforms';
 
 @Injectable({
     providedIn: 'root',
@@ -10,7 +8,7 @@ const apiUrl: string = environment.baseUrl + "/api"
 export class WebSocketService {
     private webSocket!: Socket;
     constructor() {
-        let wsUrl = apiUrl.replaceAll('http', 'ws').replaceAll('api', 'ws')
+        let wsUrl = toWsUrl(apiBaseUrl()) + '/ws'
         this.webSocket = new Socket({
             url:  wsUrl + '/status',
             options: {},
