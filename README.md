@@ -80,7 +80,7 @@ The application uses yt-dlp to fetch video metadata and thumbnail, if this is su
 #### Browsers
 | Chrome | Edge | Safari | Firefox |
 | ------------- | ------------- | ------------- | ------------- |
-|  ✔️ Supported | ✔️ Supported | ✔️ Supported | ❗ Supported (has open issues) |
+|  ✔️ Supported | ✔️ Supported | ✔️ Supported | ✔️ Supported |
 
 ## 🌟 Upcoming Features
 Please refer this list of [upcoming work items](https://github.com/users/rs-anantmishra/projects/5) and please report any bugs if you find one!

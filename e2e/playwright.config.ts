@@ -18,6 +18,8 @@ export default defineConfig({
     expect: { timeout: 15_000 },
     reporter: [['list']],
     use: {
+        // E2E_BROWSER=firefox runs the suite in Firefox
+        browserName: process.env.E2E_BROWSER === 'firefox' ? 'firefox' : 'chromium',
         headless: false,
         colorScheme: 'dark',
         ignoreHTTPSErrors: true,
