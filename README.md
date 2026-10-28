@@ -32,7 +32,6 @@ services:
     ports:
       - 1282:3000
     environment:
-      HOST_IP: "192.168.1.15"
       APPLICATION_PORT: "1282"
       CONTENT_PORT: "1288"
     volumes:
@@ -55,9 +54,10 @@ volumes:
 
 ### Environment Variables
 
-- **HOST_IP** is the IP (or hostname) of the machine on the network you want to host it on.
-- **APPLICATION_PORT** is the port you are mapping your container services to.
-- **CONTENT_PORT** is the port you are mapping your content files to.
+- **APPLICATION_PORT** (required) is the port you open Streamsphere on, the left side of its "ports" mapping.
+- **CONTENT_PORT** (required) is the port of the content server, the left side of the content service's "ports" mapping.
+- **PROTOCOL**, **APPLICATION_IP** and **CONTENT_IP** are optional. Left out, they are taken from the address you opened Streamsphere at. The [docker-compose.yaml](docker-compose.yaml) explains when to set them.
+- **HOST_IP** from older compose files still works and is read as APPLICATION_IP.
 
 ### Supported Domains
 -  youtube.com

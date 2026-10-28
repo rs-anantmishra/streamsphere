@@ -25,3 +25,7 @@ database/db/*
 node_modules/*
 # Unignore all `.exe` in `bin` dir
 #!*/bin/*.exe
+
+# end-to-end test dependencies and results
+e2e/node_modules/
+e2e/test-results/
